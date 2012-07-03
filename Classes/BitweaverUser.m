@@ -22,7 +22,6 @@
 @synthesize registrationDate;
 @synthesize challenge;
 @synthesize passDue;
-@synthesize uuUserId;
 @synthesize user;
 @synthesize valid;
 @synthesize isRegistered;
@@ -35,39 +34,33 @@
 @synthesize firstName;
 @synthesize lastName;
 
-- (NSDictionary*)getReceivablePropertyMappings {  
+- (NSDictionary*)getAllPropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                     @"dateCreated",@"date_created",
-                                     @"dateLastModified",@"date_last_modified", 
-                                     nil
-                                     ];
-    [mappings addEntriesFromDictionary:[self getSendablePropertyMappings]];
+             @"lastLogin",@"last_login", 
+             @"currentLogin",@"current_login", 
+             @"registrationDate",@"registration_date", 
+             @"isRegistered",@"is_registered", 
+             @"portraitPath",@"portrait_path", 
+             @"portraitUrl",@"portrait_url", 
+             @"avatarPath",@"avatar_path", 
+             @"avatarUrl",@"avatar_url", 
+             @"logoPath",@"logo_path", 
+             @"logoUrl",@"logo_url", 
+             nil
+             ];
+    [mappings addEntriesFromDictionary:[super getAllPropertyMappings]];
     return mappings;
 }
 
 - (NSDictionary*)getSendablePropertyMappings {  
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            @"userId",@"user_id",
-            @"contentId",@"content_id",
+    NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             @"email",@"email",
             @"login",@"login",
             @"realName",@"real_name", 
-            @"lastLogin",@"last_login", 
-            @"currentLogin",@"current_login", 
-            @"registrationDate",@"registration_date", 
-            @"challenge",@"challenge", 
-            @"passDue",@"pass_due", 
-            @"uuUserId",@"uu_user_id", 
             @"user",@"user", 
-            @"valid",@"valid", 
-            @"isRegistered",@"is_registered", 
-            @"portraitPath",@"portrait_path", 
-            @"portraitUrl",@"portrait_url", 
-            @"avatarPath",@"avatar_path", 
-            @"avatarUrl",@"avatar_url", 
-            @"logoPath",@"logo_path", 
-            @"logoUrl",@"logo_url", 
             nil];  
+    [mappings addEntriesFromDictionary:[super getSendablePropertyMappings]];
+    return mappings;
 }  
 
 
@@ -123,7 +116,7 @@
 - (void)logout {
     APPDELEGATE.authLogin = nil;
     APPDELEGATE.authPassword = nil;
-    NSDictionary *properties = [self getReceivablePropertyMappings];
+    NSDictionary *properties = [self getAllPropertyMappings];
     for (NSString* key in properties ) {
         [self setValue:nil forKey:key];
     }

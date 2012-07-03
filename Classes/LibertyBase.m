@@ -11,17 +11,22 @@
 
 @implementation LibertyBase
 
-@synthesize bookId=_bookId;
 @synthesize uuId;
+@synthesize contentId;
 @synthesize userId;
 @synthesize dateCreated;
 @synthesize dateLastModified;
+@synthesize title;
+@synthesize displayUri;
 
-- (NSDictionary*)getReceivablePropertyMappings {  
+- (NSDictionary*)getAllPropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                     @"contentId",@"content_id",
                                      @"userId",@"user_id",
                                      @"dateCreated",@"date_created",
                                      @"dateLastModified",@"date_last_modified", 
+                                     @"uuId",@"uuid",
+                                     @"displayUri",@"display_uri",
                                      nil
                                      ];
     [mappings addEntriesFromDictionary:[self getSendablePropertyMappings]];
@@ -29,21 +34,20 @@
 }
 
 - (NSDictionary*)getSendablePropertyMappings {  
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            @"uuId",@"uuid",
-            @"title",@"title",
-            nil
-            ];
-}
+    NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                     @"title",@"title",
+                                     nil];  
+    return mappings;
+}  
 
 - (void)loadFromRemoteProperties:(NSDictionary *)remoteHash {
-    NSDictionary *properties = [self getReceivablePropertyMappings];
+    NSDictionary *properties = [self getAllPropertyMappings];
     for (NSString* key in [remoteHash allKeys] ) {
-        NSString *varName = [properties objectForKey:key];
-        if( varName != nil ) {
-            [self setValue:[remoteHash objectForKey:key] forKey:varName];
+        NSLog(@"loadRemote key %@", key );
+        if ( [self respondsToSelector:NSSelectorFromString(key)] ) {
+            [self setValue:[remoteHash objectForKey:key] forKey:key];
+            NSLog(@"%@ %@ %@", key, [properties objectForKey:key], [remoteHash objectForKey:key] );
         }
-        NSLog(@"%@ %@ %@", key, [properties objectForKey:key], [remoteHash objectForKey:key] );
     }
 }
 

@@ -14,7 +14,6 @@
 }
 
 
-@property (nonatomic, retain) NSString* contentId;
 @property (nonatomic, retain) NSString* email;
 @property (nonatomic, retain) NSString* login;
 @property (nonatomic, retain) NSString* realName;
@@ -23,7 +22,6 @@
 @property (nonatomic, retain) NSString* registrationDate;
 @property (nonatomic, retain) NSString* challenge;
 @property (nonatomic, retain) NSString* passDue;
-@property (nonatomic, retain) NSString* uuUserId;
 @property (nonatomic, retain) NSString* user;
 @property (nonatomic, retain) NSString* valid;
 @property (nonatomic, retain) NSString* isRegistered;
@@ -36,7 +34,7 @@
 @property (nonatomic, retain) NSString* firstName;
 @property (nonatomic, retain) NSString* lastName;
 
-- (NSDictionary*)getReceivablePropertyMappings;
+- (NSDictionary*)getAllPropertyMappings;
 - (NSDictionary*)getSendablePropertyMappings; 
 
 - (BOOL)isAuthenticated;
