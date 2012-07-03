@@ -85,7 +85,7 @@
         nil
         ];
     
-    [mappings addEntriesFromDictionary:[self getSendablePropertyMappings]];
+    [mappings addEntriesFromDictionary:[super getAllPropertyMappings]];
     return mappings;
 }
 
@@ -95,6 +95,10 @@
     [mappings addEntriesFromDictionary:[super getSendablePropertyMappings]];
     return mappings;
 }  
+
+- (BOOL)isValid {
+    return productId != nil;
+}
 
 
 @end
