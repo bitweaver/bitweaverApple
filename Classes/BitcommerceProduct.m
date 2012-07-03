@@ -24,7 +24,7 @@
 
 - (NSDictionary*)getAllPropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-        @"productsId",@"products_id",
+        @"productId",@"products_id",
         @"languageId",@"language_id",
         @"productsDescription",@"products_description",
         @"productsUrl",@"products_url",
@@ -92,6 +92,7 @@
 - (NSDictionary*)getSendablePropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                      nil];  
+    [mappings addEntriesFromDictionary:[super getSendablePropertyMappings]];
     return mappings;
 }  
 

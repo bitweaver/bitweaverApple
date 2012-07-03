@@ -43,10 +43,10 @@
 - (void)loadFromRemoteProperties:(NSDictionary *)remoteHash {
     NSDictionary *properties = [self getAllPropertyMappings];
     for (NSString* key in [remoteHash allKeys] ) {
-        NSLog(@"loadRemote key %@", key );
-        if ( [self respondsToSelector:NSSelectorFromString(key)] ) {
-            [self setValue:[remoteHash objectForKey:key] forKey:key];
-            NSLog(@"%@ %@ %@", key, [properties objectForKey:key], [remoteHash objectForKey:key] );
+        NSString *propertyName = [properties objectForKey:key];
+        if ( [self respondsToSelector:NSSelectorFromString( propertyName )] ) {
+            [self setValue:[remoteHash objectForKey:key] forKey:propertyName];
+            NSLog(@"loadRemote %@ %@ %@", key, propertyName, [remoteHash objectForKey:key] );
         }
     }
 }
