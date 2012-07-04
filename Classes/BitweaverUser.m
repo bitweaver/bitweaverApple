@@ -72,14 +72,31 @@
 }
 
 - (void)registerUser:(NSString*)authLogin withPassword:(NSString*)authPassword {
-   
-    /*
-     NSDictionary *userDict = [NSDictionary dictionaryWithObjectsAndKeys:
-     authLogin, @"email",
-     authPassword, @"password",
-     nil];
-     [[RKClient sharedClient] put:@"users" params:userDict delegate:self];
-     */
+    
+    // Assume login was email field, update here for registration
+    [self setValue:authLogin forKey:@"email"];
+    
+    NSDictionary *properties = [self getSendablePropertyMappings];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithCapacity:[properties count]];
+    for (NSString* key in [properties allKeys] ) {
+        [parameters setValue:[self valueForKey:[properties objectForKey:key]] forKey:key];
+    }
+    [parameters setValue:authPassword forKey:@"password"];
+    NSMutableURLRequest *putRequest = [[BitweaverHTTPClient sharedClient] multipartFormRequestWithMethod:@"POST" path:[NSString stringWithFormat:@"users"] parameters:parameters constructingBodyWithBlock: ^(id <AFMultipartFormData>formData) { }];
+    
+    [BitweaverHTTPClient prepareRequestHeaders:putRequest];
+    
+    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:putRequest
+success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+    [self loadFromRemoteProperties:JSON];
+    [APPDELEGATE authenticationSuccess];
+} 
+failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+    [APPDELEGATE registrationFailure:[NSString stringWithFormat:@"Registration failed.\n\n%@", [BitweaverHTTPClient errorMessageWithResponse:response urlRequest:request JSON:JSON]]];
+}
+];
+        
+   [[[NSOperationQueue alloc] init] addOperation:operation];
 }
 
 - (void)authenticate:(NSString*)authLogin withPassword:(NSString*)authPassword {

@@ -10,7 +10,6 @@
 @implementation BitweaverAppDelegate
 
 @synthesize window = _window;
-
 @synthesize apiBaseUri, user, authLogin, authPassword;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions

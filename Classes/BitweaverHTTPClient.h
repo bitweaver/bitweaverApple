@@ -14,5 +14,6 @@
 + (BitweaverHTTPClient *) sharedClient;
 + (NSMutableURLRequest *) requestWithPath:(NSString *)urlPath;
 + (void) prepareRequestHeaders:(NSMutableURLRequest *)request;
++ (NSString *) errorMessageWithResponse:response urlRequest:(NSURLRequest *)request JSON:(NSDictionary *)JSON;
 
 @end

@@ -36,5 +36,24 @@
     [request setValue:[NSString stringWithFormat:@"API consumer_key=\"%@\"", APP_API_KEY] forHTTPHeaderField:@"API"];
 }
 
++ (NSString *) errorMessageWithResponse:response urlRequest:(NSURLRequest *)request JSON:(NSDictionary *)JSON {
+    
+    NSMutableString *errorMessage = [NSMutableString string];
+    for (NSString* key in [JSON allKeys] ) {
+        [errorMessage appendFormat:@"%@\n", [JSON objectForKey:key]];
+    }
+    
+    if( [errorMessage length] == 0 ) {
+        if( [response statusCode] == 408 ) {
+            [errorMessage appendString:@"Request timed out. Please check your internet connection."];
+        } else {
+            [errorMessage appendString:@"Unknown error."];
+        }
+    }
+
+    return [NSString stringWithFormat:@"%@\n(ERR %d %@)", errorMessage, [response statusCode], request.URL.host];
+}
+
+
 
 @end
