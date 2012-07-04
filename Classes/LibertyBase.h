@@ -12,11 +12,11 @@
     NSString *_bookId;
 }
 
-- (NSString *)generateId;
++ (NSString *) generateUuid;
 - (BOOL) createDirectory:(NSString *)directory;
 
 // REST Mappable properties
-@property (nonatomic,strong) NSNumber *uuId;    // Universal Unique ID for content, created by your app
+@property (nonatomic,strong) NSString *uuId;    // Universal Unique ID for content, created by your app
 @property (nonatomic,strong) NSNumber *contentId; // Content ID created by remote system
 @property (nonatomic,strong) NSNumber *userId; // User ID on the remote system that created the content
 @property (nonatomic,strong) NSString *title; // Title of the content

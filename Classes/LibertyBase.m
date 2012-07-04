@@ -51,7 +51,7 @@
     }
 }
 
-- (NSString *) generateId {
++ (NSString *) generateUuid {
     CFUUIDRef newIdRef = CFUUIDCreate(NULL);
     CFStringRef idString = CFUUIDCreateString(NULL, newIdRef);
     CFRelease(newIdRef);
