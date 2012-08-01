@@ -64,9 +64,16 @@
 }  
 
 
-- (BOOL)verifyAuthentication:(id)callbackObject callbackMethod:(SEL)callbackMethod callbackParameter:(id)callbackParameter {
+- (BOOL)verifyAuthentication:(id)object selectorName:(NSString*)selectorName callbackParameter:(id)callbackParameter {
     if( ![self isAuthenticated] ) {
+        callbackObject = object;
+        callbackSelectorName = selectorName;
         [APPDELEGATE showAuthenticationDialog];
+    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [object performSelector:NSSelectorFromString(selectorName)];
+#pragma clang diagnostic pop
     }
     return [self isAuthenticated];
 }
@@ -117,7 +124,17 @@ failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id
             [APPDELEGATE authenticationSuccess];
             
             // Send a notification event user has just logged in.
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserLoaded" object:self];  
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserLoaded" object:self];
+            
+            if( callbackSelectorName != nil ) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+                [callbackObject performSelector:NSSelectorFromString(callbackSelectorName)];
+#pragma clang diagnostic pop
+                callbackObject = nil;
+                callbackSelectorName = nil;
+            }            
+
         } 
         failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
         }

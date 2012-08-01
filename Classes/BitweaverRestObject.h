@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @interface BitweaverRestObject : NSObject {
-    NSString *_bookId;
 }
 
 + (NSString *) generateUuid;

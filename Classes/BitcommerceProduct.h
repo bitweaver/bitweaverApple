@@ -10,9 +10,10 @@
 
 @interface BitcommerceProduct : BitweaverRestObject
 
+// REST properties
 @property (nonatomic,strong) NSNumber *productId;
-@property (nonatomic,strong) NSNumber *ratioId;
 @property (nonatomic,strong) NSString *typeClass;
+@property (nonatomic) BOOL *enabled;
 
 + (BitcommerceProduct *)productFromHash:(NSDictionary *)hash;
 

@@ -11,7 +11,7 @@
 @implementation BitcommerceProduct
 
 @synthesize productId;
-@synthesize ratioId;
+@synthesize enabled;
 @synthesize typeClass;
 
 + (BitcommerceProduct *)productFromHash:(NSDictionary *)hash {
