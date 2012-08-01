@@ -6,9 +6,9 @@
 //  Copyright (c) 2012 Viovio.com. All rights reserved.
 //
 
-#import "LibertyBase.h"
+#import "BitweaverRestObject.h"
 
-@interface BitcommerceProduct : LibertyBase
+@interface BitcommerceProduct : BitweaverRestObject
 
 @property (nonatomic,strong) NSNumber *productId;
 @property (nonatomic,strong) NSNumber *ratioId;

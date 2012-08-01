@@ -6,11 +6,11 @@
 //  Copyright (c) 2012 Viovio.com. All rights reserved.
 //
 
-#import "LibertyBase.h"
+#import "BitweaverRestObject.h"
 
 @class BitweaverUser;
 
-@interface BitweaverUser : LibertyBase {
+@interface BitweaverUser : BitweaverRestObject {
 }
 
 

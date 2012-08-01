@@ -1,5 +1,5 @@
 //
-//  LibertyBase.h
+//  BitweaverRestObject.h
 //  Liberty
 //
 //  Created by Christian Fowler on 11/15/11.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface LibertyBase : NSObject {
+@interface BitweaverRestObject : NSObject {
     NSString *_bookId;
 }
 

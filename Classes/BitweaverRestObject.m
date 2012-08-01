@@ -1,15 +1,15 @@
 //
-//  LibertyBase.m
+//  BitweaverRestObject.m
 //  Liberty
 //
 //  Created by Christian Fowler on 11/15/11.
 //  Copyright 2011 Viovio.com. All rights reserved.
 //
 
-#import "LibertyBase.h"
+#import "BitweaverRestObject.h"
 #import "AppDelegateConnector.h"
 
-@implementation LibertyBase
+@implementation BitweaverRestObject
 
 @synthesize uuId;
 @synthesize contentId;

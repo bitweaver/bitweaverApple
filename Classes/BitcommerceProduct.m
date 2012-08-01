@@ -25,7 +25,9 @@
 - (NSDictionary*)getAllPropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
         @"productId",@"products_id",
-        @"languageId",@"language_id",
+        @"typeClass",@"type_class",
+                                     
+/* Not Implemented yet
         @"productsDescription",@"products_description",
         @"productsUrl",@"products_url",
         @"productsViewed",@"products_viewed",
@@ -81,7 +83,8 @@
         @"productsWeightKg",@"products_weight_kg",
         @"regularPrice",@"regular_price",
         @"displayPrice",@"display_price",
-        @"typeClass",@"type_class",
+ */
+                                     
         nil
         ];
     
