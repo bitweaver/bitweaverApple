@@ -12,7 +12,7 @@
 
 @synthesize productId;
 @synthesize enabled;
-@synthesize typeClass;
+@synthesize productType;
 
 + (BitcommerceProduct *)productFromHash:(NSDictionary *)hash {
     
@@ -24,8 +24,7 @@
 
 - (NSDictionary*)getAllPropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-        @"productId",@"products_id",
-        @"typeClass",@"type_class",
+        @"productId",@"product_id",
                                      
 /* Not Implemented yet
         @"productsDescription",@"products_description",
@@ -94,6 +93,7 @@
 
 - (NSDictionary*)getSendablePropertyMappings {  
     NSMutableDictionary *mappings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                     @"productType",@"product_type",
                                      nil];  
     [mappings addEntriesFromDictionary:[super getSendablePropertyMappings]];
     return mappings;

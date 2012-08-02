@@ -12,7 +12,7 @@
 
 // REST properties
 @property (nonatomic,strong) NSNumber *productId;
-@property (nonatomic,strong) NSString *typeClass;
+@property (nonatomic,strong) NSString *productType;
 @property (nonatomic) BOOL *enabled;
 
 + (BitcommerceProduct *)productFromHash:(NSDictionary *)hash;

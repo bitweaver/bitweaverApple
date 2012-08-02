@@ -51,7 +51,7 @@
         }
     }
 
-    return [NSString stringWithFormat:@"%@\n(ERR %d %@)", errorMessage, [response statusCode], request.URL.host];
+    return [NSString stringWithFormat:@"%@(ERR %d %@)", errorMessage, [response statusCode], request.URL];
 }
 
 

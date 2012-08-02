@@ -24,6 +24,7 @@
 @property (nonatomic,strong) NSDate *dateLastModified;
 
 
++ (NSString *) generateUuid;
 - (NSDictionary*)getAllPropertyMappings;
 - (NSDictionary*)getSendablePropertyMappings;
 - (void)loadFromRemoteProperties:(NSDictionary *)remoteHash;
