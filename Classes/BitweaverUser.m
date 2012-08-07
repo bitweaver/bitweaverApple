@@ -152,12 +152,14 @@ failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id
     APPDELEGATE.authPassword = nil;
     NSDictionary *properties = [self getAllPropertyMappings];
     for (NSString* key in properties ) {
-        [self setValue:nil forKey:key];
+        NSString *varName = [properties valueForKey:key];
+        if( [self respondsToSelector:NSSelectorFromString(varName)] ) {
+            [self setValue:nil forKey:varName];
+        }
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUnloaded" object:self];
     
 }
-
 
 
 @end

@@ -43,5 +43,6 @@
 - (BOOL)verifyAuthentication:(id)object selectorName:(NSString*)selectorName callbackParameter:(id)callbackParameter;
 - (void)registerUser:(NSString*)authLogin withPassword:(NSString*)authPassword;
 - (void)authenticate:(NSString*)authLogin withPassword:(NSString*)authPassword;
+- (void)logout;
 
 @end
