@@ -63,6 +63,10 @@
     return mappings;
 }  
 
+- (void)loadFromRemoteProperties:(NSDictionary *)remoteHash {
+    [super loadFromRemoteProperties:remoteHash];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"UserLoaded" object:self];      
+}
 
 - (BOOL)verifyAuthentication:(id)object selectorName:(NSString*)selectorName callbackParameter:(id)callbackParameter {
     if( ![self isAuthenticated] ) {
