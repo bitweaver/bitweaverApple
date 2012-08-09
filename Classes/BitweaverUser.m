@@ -128,7 +128,7 @@
             [APPDELEGATE authenticationSuccess];
             
             // Send a notification event user has just logged in.
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserLoaded" object:self];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserAuthenticated" object:self];
             
             if( callbackSelectorName != nil ) {
 #pragma clang diagnostic push
