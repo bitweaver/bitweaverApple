@@ -98,14 +98,14 @@
     [BitweaverHTTPClient prepareRequestHeaders:putRequest];
     
     AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:putRequest
-success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
-    [self loadFromRemoteProperties:JSON];
-    [APPDELEGATE authenticationSuccess];
-} 
-failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
-    [APPDELEGATE registrationFailure:[NSString stringWithFormat:@"Registration failed.\n\n%@", [BitweaverHTTPClient errorMessageWithResponse:response urlRequest:request JSON:JSON]]];
-}
-];
+        success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+            [self loadFromRemoteProperties:JSON];
+            [APPDELEGATE authenticationSuccess];
+        } 
+        failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+            [APPDELEGATE registrationFailure:[NSString stringWithFormat:@"Registration failed.\n\n%@", [BitweaverHTTPClient errorMessageWithResponse:response urlRequest:request JSON:JSON]]];
+        }
+        ];
         
    [[[NSOperationQueue alloc] init] addOperation:operation];
 }
@@ -162,8 +162,11 @@ failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id
             [self setValue:nil forKey:varName];
         }
     }
+    NSHTTPCookieStorage *cookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    for (NSHTTPCookie *each in cookieStorage.cookies) {
+        [cookieStorage deleteCookie:each];
+    }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUnloaded" object:self];
-    
 }
 
 
