@@ -103,5 +103,4 @@
     return productId != nil;
 }
 
-
 @end
