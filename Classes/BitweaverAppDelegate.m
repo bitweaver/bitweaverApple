@@ -22,7 +22,7 @@
         
         // Setup URI used for all REST calls
         NSString *appProtocol = @"https";
-#ifdef DEBUG
+#ifdef DEBUG_BUILD
         appProtocol = @"http";
 #endif
         apiBaseUri = [NSString stringWithFormat:@"%@://%@/api/", appProtocol, APP_API_DOMAIN];
