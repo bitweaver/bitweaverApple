@@ -46,7 +46,7 @@
         NSString *propertyName = [properties objectForKey:key];
         if ( [self respondsToSelector:NSSelectorFromString( propertyName )] ) {
             [self setValue:[remoteHash objectForKey:key] forKey:propertyName];
-            NSLog(@"loadRemote %@ %@ %@", key, propertyName, [remoteHash objectForKey:key] );
+//            NSLog(@"loadRemote %@ %@ %@", key, propertyName, [remoteHash objectForKey:key] );
         }
     }
 }

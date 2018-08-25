@@ -1,5 +1,5 @@
 //
-//  PBProHTTPClient.h
+//  BitweaverHTTPClient.h
 //  designer
 //
 //  Created by Christian Fowler on 4/9/12.

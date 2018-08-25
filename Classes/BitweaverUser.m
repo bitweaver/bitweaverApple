@@ -63,6 +63,10 @@
     return mappings;
 }  
 
+- (void)loadFromRemoteProperties:(NSDictionary *)remoteHash {
+    [super loadFromRemoteProperties:remoteHash];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"UserLoaded" object:self];      
+}
 
 - (BOOL)verifyAuthentication:(id)object selectorName:(NSString*)selectorName callbackParameter:(id)callbackParameter {
     if( ![self isAuthenticated] ) {
@@ -94,14 +98,14 @@
     [BitweaverHTTPClient prepareRequestHeaders:putRequest];
     
     AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:putRequest
-success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
-    [self loadFromRemoteProperties:JSON];
-    [APPDELEGATE authenticationSuccess];
-} 
-failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
-    [APPDELEGATE registrationFailure:[NSString stringWithFormat:@"Registration failed.\n\n%@", [BitweaverHTTPClient errorMessageWithResponse:response urlRequest:request JSON:JSON]]];
-}
-];
+        success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+            [self loadFromRemoteProperties:JSON];
+            [APPDELEGATE authenticationSuccess];
+        } 
+        failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+            [APPDELEGATE registrationFailure:[NSString stringWithFormat:@"Registration failed.\n\n%@", [BitweaverHTTPClient errorMessageWithResponse:response urlRequest:request JSON:JSON]]];
+        }
+        ];
         
    [[[NSOperationQueue alloc] init] addOperation:operation];
 }
@@ -124,7 +128,7 @@ failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id
             [APPDELEGATE authenticationSuccess];
             
             // Send a notification event user has just logged in.
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserLoaded" object:self];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserAuthenticated" object:self];
             
             if( callbackSelectorName != nil ) {
 #pragma clang diagnostic push
@@ -137,6 +141,7 @@ failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id
 
         } 
         failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+            [APPDELEGATE authenticationFailureWithRequest:request response:response error:error json:JSON];
         }
      ];
     
@@ -157,8 +162,11 @@ failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id
             [self setValue:nil forKey:varName];
         }
     }
+    NSHTTPCookieStorage *cookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    for (NSHTTPCookie *each in cookieStorage.cookies) {
+        [cookieStorage deleteCookie:each];
+    }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUnloaded" object:self];
-    
 }
 
 
