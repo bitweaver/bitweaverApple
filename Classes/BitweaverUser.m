@@ -141,7 +141,7 @@
 
         } 
         failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
-//            [APPDELEGATE authenticationFailureWithRequest:request response:response error:error json:JSON];
+            [APPDELEGATE authenticationFailureWithRequest:request response:response error:error json:JSON];
         }
      ];
     
