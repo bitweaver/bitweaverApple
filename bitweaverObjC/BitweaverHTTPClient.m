@@ -7,7 +7,6 @@
 //
 
 #import "BitweaverHTTPClient.h"
-#import "AppDelegateConnector.h"
 
 @implementation BitweaverHTTPClient
 
@@ -16,11 +15,11 @@
     static dispatch_once_t onceToken;
     
     dispatch_once(&onceToken, ^{
-        _sharedClient = (BitweaverHTTPClient *)[super clientWithBaseURL:[NSURL URLWithString:APPDELEGATE.apiBaseUri]];
+        _sharedClient = (BitweaverHTTPClient *)[super clientWithBaseURL:[NSURL URLWithString: [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BW_API_PKG_URI"]]];
         NSAssert(_sharedClient, @"Shared REST client not initialized" );
     });
     
-    [_sharedClient setAuthorizationHeaderWithUsername:APPDELEGATE.authLogin password:APPDELEGATE.authPassword];    
+// SWIFTCONVERT    [_sharedClient setAuthorizationHeaderWithUsername:APPDELEGATE.authLogin password:APPDELEGATE.authPassword];    
     return _sharedClient;
 }
 
@@ -33,7 +32,7 @@
 }
 
 + (void) prepareRequestHeaders:(NSMutableURLRequest *)request {
-    [request setValue:[NSString stringWithFormat:@"API consumer_key=\"%@\"", APP_API_KEY] forHTTPHeaderField:@"API"];
+    [request setValue:[NSString stringWithFormat:@"API consumer_key=\"%@\"", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BW_API_KEY"]] forHTTPHeaderField:@"API"];
 }
 
 + (NSString *) errorMessageWithResponse:response urlRequest:(NSURLRequest *)request JSON:(NSDictionary *)JSON {
