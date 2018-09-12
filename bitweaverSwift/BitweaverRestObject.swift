@@ -37,7 +37,7 @@ class BitweaverRestObject: NSObject {
     }
 
     func getSendablePropertyMappings() -> [String : String]? {
-        var mappings = [
+        let mappings = [
             "title" : "title"
         ]
         return mappings
@@ -67,7 +67,7 @@ class BitweaverRestObject: NSObject {
     
     func load(fromRemoteProperties remoteHash: [String : Any]?) {
         if let properties = getAllPropertyMappings() {
-            for (key,value) in remoteHash! {
+            for (key,_) in remoteHash! {
                 let propertyName = properties[key]
                 if responds(to: NSSelectorFromString(propertyName!)) {
                     setValue(remoteHash?[key], forKey: propertyName ?? "")

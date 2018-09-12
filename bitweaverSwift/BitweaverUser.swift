@@ -15,6 +15,8 @@
 //  Copyright (c) 2012 Viovio.com. All rights reserved.
 //
 
+import Foundation
+
 class BitweaverUser: BitweaverRestObject {
     @objc dynamic var email = ""
     @objc dynamic var login = ""

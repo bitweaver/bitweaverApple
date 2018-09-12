@@ -9,9 +9,10 @@
 
 class BitcommerceProduct: BitweaverRestObject {
     // REST properties
-    var productId: NSNumber?
+    var productId: Int?
     var productType = ""
     var enabled: [Bool] = []
+    var images: [String:String] = [:]
 
     convenience init(fromHash hash: [String : Any]?) {
         self.init()
