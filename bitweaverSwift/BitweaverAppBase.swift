@@ -16,8 +16,6 @@
 import Foundation
 
 class BitweaverAppBase: NSObject {
-    var user: BitweaverUser?
-    var apiBaseUri: String = ""
     var authLogin: String = ""
     var authPassword: String = ""
 }

@@ -19,7 +19,7 @@
         NSAssert(_sharedClient, @"Shared REST client not initialized" );
     });
     
-// SWIFTCONVERT    [_sharedClient setAuthorizationHeaderWithUsername:APPDELEGATE.authLogin password:APPDELEGATE.authPassword];    
+    [_sharedClient setAuthorizationHeaderWithUsername:APPDELEGATE.authLogin password:APPDELEGATE.authPassword];    
     return _sharedClient;
 }
 

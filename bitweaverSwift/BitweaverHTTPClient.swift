@@ -7,40 +7,42 @@
 //  Copyright (c) 2012 Viovio.com. All rights reserved.
 //
 
+let gBitweaverHTTPClient = BitweaverHTTPClient.shared
+
 class BitweaverHTTPClient: AFHTTPClient {
-    class func shared() -> BitweaverHTTPClient? {
-        var _sharedClient: BitweaverHTTPClient? = nil
-        var onceToken: Int = 0
+    var apiBaseUri: String = ""
+    
+    static let shared = BitweaverHTTPClient()
 
-        if (onceToken == 0) {
-            _sharedClient = super.initWithBaseURL(URL(string: APPDELEGATE?.apiBaseUri)) as? BitweaverHTTPClient
-            assert(_sharedClient != nil, "Shared REST client not initialized")
-        }
-        onceToken = 1
-
-        _sharedClient?.setAuthorizationHeaderWithUsername(APPDELEGATE.authLogin, password: APPDELEGATE?.authPassword)
-        return _sharedClient
+    override private init() {
+        apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_PKG_URI") as! String
+        super.init(baseURL:URL(string: apiBaseUri))
     }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func request( withPath: String?) -> NSMutableURLRequest? {
+        setAuthorizationHeaderWithUsername(APPDELEGATE.authLogin, password: APPDELEGATE.authPassword)
 
-    class func request(withPath urlPath: String?) -> NSMutableURLRequest? {
-
-        var request: NSMutableURLRequest? = BitweaverHTTPClient.shared()?.request(withMethod: "GET", path: urlPath, parameters: nil)
-        BitweaverHTTPClient.prepareRequestHeaders(request)
+        let request = super.request(withMethod: "GET", path: withPath, parameters: nil)
+        prepareRequestHeaders(request)
 
         return request
     }
 
-    class func prepareRequestHeaders(_ request: NSMutableURLRequest?) {
-        if let apiKey = Bundle.main.object(forInfoDictionaryKey: "APP_API_KEY") as? String {
+    func prepareRequestHeaders(_ request: NSMutableURLRequest?) {
+        if let apiKey = Bundle.main.object(forInfoDictionaryKey: "BW_API_KEY") as? String {
             request?.setValue("API consumer_key=\""+apiKey+"\"", forHTTPHeaderField: "API")
         }
     }
 
-    class func errorMessage(withResponse response: HTTPURLResponse, urlRequest request: URLRequest?, json JSON: [AnyHashable : Any]?) -> String? {
+    func errorMessage(withResponse response: HTTPURLResponse, urlRequest request: URLRequest?, json JSON: [String : Any]?) -> String? {
 
         var errorMessage = ""
         for key: String? in (JSON?.keys)! {
-            if let aKey = JSON?[key] {
+            if let aKey = JSON?[key!] {
                 errorMessage += "\(aKey)\n"
             }
         }
@@ -54,7 +56,7 @@ class BitweaverHTTPClient: AFHTTPClient {
         }
 
         if let anURL = request?.url {
-            return String(format: "%@(ERR %ld %@)", errorMessage, response.statusCode, anURL)
+            return String(format: "%@(ERR %ld %@)", errorMessage, response.statusCode, anURL as CVarArg)
         }
         return nil
     }

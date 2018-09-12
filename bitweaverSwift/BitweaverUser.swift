@@ -17,6 +17,8 @@
 
 import Foundation
 
+let gBitUser = BitweaverUser.shared
+
 class BitweaverUser: BitweaverRestObject {
     @objc dynamic var email = ""
     @objc dynamic var login = ""
@@ -41,6 +43,14 @@ class BitweaverUser: BitweaverRestObject {
     var callbackSelectorName = ""
     var callbackObject: AnyObject?
 
+    static let shared = BitweaverUser()
+    
+    // Prevent multiple
+    override private init(){
+        super.init()
+    }
+    
+    
     override func getAllPropertyMappings() -> [String:String]? {
         var mappings = [
             "last_login" : "lastLogin",
@@ -87,7 +97,9 @@ class BitweaverUser: BitweaverRestObject {
         return isAuthenticated()
     }
 
-    func register(_ authLogin: String, withPassword authPassword: String) {
+    func register(_ authLogin:String, withPassword authPassword:String, handler:BitweaverLoginViewController) {
+        var ret: Bool = false
+        var errorMessage: String = ""
 
         // Assume login was email field, update here for registration
         self.email = authLogin
@@ -95,33 +107,38 @@ class BitweaverUser: BitweaverRestObject {
         var parameters: [String:String] = [:]
         if let properties = getSendablePropertyMappings() {
             for (key,name) in properties {
-                parameters[key] = self.value(forKey:name) as! String    
+                parameters[key] = self.value(forKey:name) as? String
             }
             parameters["password"] = authPassword
         }
-        var putRequest: NSMutableURLRequest? = BitweaverHTTPClient.shared()?.multipartFormRequest(withMethod: "POST", path: "users", parameters: parameters, constructingBodyWith: { formData in })
+        let putRequest: NSMutableURLRequest? = gBitweaverHTTPClient.multipartFormRequest(withMethod: "POST", path: "users", parameters: parameters, constructingBodyWith: { formData in })
 
-        BitweaverHTTPClient.prepareRequestHeaders(putRequest)
+        gBitweaverHTTPClient.prepareRequestHeaders(putRequest)
 
-        if let operation = AFJSONRequestOperation(request: putRequest as! URLRequest, success: { request, response, JSON in
+        if let operation = AFJSONRequestOperation(request: putRequest! as URLRequest, success: { request, response, JSON in
+                ret = true
                 self.load(fromRemoteProperties: JSON as? [String : Any])
-                APPDELEGATE.authenticationSuccess()
+                handler.registrationResponse(success: ret, message: errorMessage, response: response! )
             }, failure: { request, response, error, JSON in
-                APPDELEGATE.registrationFailure("Registration failed.\n\n\(BitweaverHTTPClient.errorMessage(withResponse: response, urlRequest: request, json: JSON as? [AnyHashable : Any]) ?? "")")
+                errorMessage = gBitweaverHTTPClient.errorMessage(withResponse: response!, urlRequest: request, json: JSON as? [String : Any])!
+                handler.registrationResponse(success: ret, message: errorMessage, response: response! )
         }) {
             OperationQueue().addOperation(operation)
         }
     }
 
-    func authenticate(_ authLogin: String?, withPassword authPassword: String?) {
+    func authenticate( authLogin:String, authPassword:String, handler:BitweaverLoginViewController ) {
+        var ret: Bool = false
+        var errorMessage: String = ""
+        
+        APPDELEGATE.authLogin = authLogin
+        APPDELEGATE.authPassword = authPassword
 
-        APPDELEGATE.authLogin = authLogin ?? ""
-        APPDELEGATE.authPassword = authPassword ?? ""
-
-        if let operation = AFJSONRequestOperation(request: BitweaverHTTPClient.request(withPath: "users/authenticate") as URLRequest!, success: { request, response, JSON in
+        if let operation = AFJSONRequestOperation(request: gBitweaverHTTPClient.request(withPath: "users/authenticate") as URLRequest?, success: { request, response, JSON in
+                ret = true
                 // Set all cookies so subsequent requests pass on info
                 var cookies: [HTTPCookie]? = nil
-                if let aFields = response?.allHeaderFields as? [String : String], let anUri = URL(string: APPDELEGATE.apiBaseUri ?? "") {
+            if let aFields = response?.allHeaderFields as? [String : String], let anUri = URL(string: gBitweaverHTTPClient.apiBaseUri ) {
                     cookies = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
                 }
 
@@ -142,9 +159,12 @@ class BitweaverUser: BitweaverRestObject {
                     self.callbackObject = nil
                     self.callbackSelectorName = ""
                 }
+                handler.authenticationResponse(success: ret, message: errorMessage, response: response! )
 
             }, failure: { request, response, error, JSON in
                 APPDELEGATE.authenticationFailure(with: request, response: response, error: error, json: JSON)
+                errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response?.statusCode ?? 0), request?.url?.host ?? "")
+                handler.authenticationResponse(success: ret, message: errorMessage, response: response! )
         }) {
             OperationQueue().addOperation(operation)
         }
