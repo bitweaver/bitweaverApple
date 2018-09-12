@@ -1,4 +1,4 @@
 bitweaverObjC
 =============
 
-Objective-C interface for bitweaver CMS
+Swift and Objective-C interfaces for the bitweaver CMS
