@@ -38,12 +38,14 @@ class BitweaverHTTPClient: AFHTTPClient {
         }
     }
 
-    func errorMessage(withResponse response: HTTPURLResponse, urlRequest request: URLRequest?, json JSON: [String : Any]?) -> String? {
+    func errorMessage(withResponse response: HTTPURLResponse, urlRequest request: URLRequest?, json JSON: [String : Any]) -> String? {
 
         var errorMessage = ""
-        for key: String? in (JSON?.keys)! {
-            if let aKey = JSON?[key!] {
-                errorMessage += "\(aKey)\n"
+        if( JSON.count > 0 ) {
+            for key: String in (JSON.keys) {
+                if let aKey = JSON[key] {
+                    errorMessage += "\(aKey)\n"
+                }
             }
         }
 

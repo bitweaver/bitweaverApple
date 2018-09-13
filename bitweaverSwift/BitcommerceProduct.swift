@@ -14,7 +14,7 @@ class BitcommerceProduct: BitweaverRestObject {
     var enabled: [Bool] = []
     var images: [String:String] = [:]
 
-    convenience init(fromHash hash: [String : Any]?) {
+    convenience init(fromHash hash: [String : String]) {
         self.init()
         load(fromRemoteProperties: hash)
     }

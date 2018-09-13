@@ -91,7 +91,7 @@ class BitweaverUser: BitweaverRestObject {
         } else {
 //clang diagnostic push
 //clang diagnostic ignored "-Warc-performSelector-leaks"
-            (object as AnyObject).perform(NSSelectorFromString(selectorName!))
+// SWIFTCONVERT            (object as AnyObject).perform(NSSelectorFromString(selectorName!))
 //clang diagnostic pop
         }
         return isAuthenticated()
@@ -117,10 +117,10 @@ class BitweaverUser: BitweaverRestObject {
 
         if let operation = AFJSONRequestOperation(request: putRequest! as URLRequest, success: { request, response, JSON in
                 ret = true
-                self.load(fromRemoteProperties: JSON as? [String : Any])
+            self.load(fromRemoteProperties: JSON as! [String : String])
                 handler.registrationResponse(success: ret, message: errorMessage, response: response! )
             }, failure: { request, response, error, JSON in
-                errorMessage = gBitweaverHTTPClient.errorMessage(withResponse: response!, urlRequest: request, json: JSON as? [String : Any])!
+                errorMessage = gBitweaverHTTPClient.errorMessage(withResponse: response!, urlRequest: request, json: (JSON as? [String : Any])!)!
                 handler.registrationResponse(success: ret, message: errorMessage, response: response! )
         }) {
             OperationQueue().addOperation(operation)
@@ -137,33 +137,31 @@ class BitweaverUser: BitweaverRestObject {
         if let operation = AFJSONRequestOperation(request: gBitweaverHTTPClient.request(withPath: "users/authenticate") as URLRequest?, success: { request, response, JSON in
                 ret = true
                 // Set all cookies so subsequent requests pass on info
-                var cookies: [HTTPCookie]? = nil
-            if let aFields = response?.allHeaderFields as? [String : String], let anUri = URL(string: gBitweaverHTTPClient.apiBaseUri ) {
+                var cookies: [HTTPCookie] = []
+                if let aFields = response?.allHeaderFields as? [String : String], let anUri = URL(string: gBitweaverHTTPClient.apiBaseUri ) {
                     cookies = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
                 }
 
-                for cookie: HTTPCookie? in cookies ?? [] {
-                    if let aCookie = cookie {
-                        HTTPCookieStorage.shared.setCookie(aCookie)
+                if cookies.count > 0 {
+                    for cookie in cookies {
+                        HTTPCookieStorage.shared.setCookie(cookie)
                     }
                 }
 
-                self.load(fromRemoteProperties: JSON as? [String : Any])
+                self.load(fromRemoteProperties: JSON as! [String : Any])
                 APPDELEGATE.authenticationSuccess()
 
                 // Send a notification event user has just logged in.
                 NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
 
-                if self.callbackSelectorName != nil {
-                    self.callbackObject?.perform(NSSelectorFromString(self.callbackSelectorName))
-                    self.callbackObject = nil
-                    self.callbackSelectorName = ""
-                }
                 handler.authenticationResponse(success: ret, message: errorMessage, response: response! )
 
             }, failure: { request, response, error, JSON in
                 APPDELEGATE.authenticationFailure(with: request, response: response, error: error, json: JSON)
-                errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response?.statusCode ?? 0), request?.url?.host ?? "")
+                errorMessage = gBitweaverHTTPClient.errorMessage(withResponse: response!, urlRequest: request, json: JSON as! [String : Any])!
+                if( errorMessage.count == 0 ) {
+                    errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response?.statusCode ?? 0), request?.url?.host ?? "")
+                    }
                 handler.authenticationResponse(success: ret, message: errorMessage, response: response! )
         }) {
             OperationQueue().addOperation(operation)
@@ -174,10 +172,10 @@ class BitweaverUser: BitweaverRestObject {
         APPDELEGATE.authLogin = ""
         APPDELEGATE.authPassword = ""
         if let properties = getAllPropertyMappings() {
-            for (key,value) in properties {
+            for (key,_) in properties {
                 if let varName = properties[key] {
                     if responds(to: NSSelectorFromString(varName)) {
-                        setValue(nil, forKey: varName ?? "")
+                        setValue(nil, forKey: varName )
                     }
                 }
             }
@@ -191,7 +189,7 @@ class BitweaverUser: BitweaverRestObject {
         NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }
 
-    override func load(fromRemoteProperties remoteHash: [String : Any]?) {
+    override func load(fromRemoteProperties remoteHash: [String : Any]) {
         super.load(fromRemoteProperties: remoteHash)
         NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
     }

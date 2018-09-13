@@ -47,31 +47,32 @@ class BitweaverRestObject: NSObject {
         return UUID().uuidString
     }
     
-    func createDirectory(_ directory: String?) -> Bool {
+    func createDirectory(_ directory: String) -> Bool {
         var ret = true
         
         let fileManager = FileManager.default
-        var fileError: Error? = nil
         
         // Create the root bookPath
-        if !(fileManager.fileExists(atPath: directory ?? "")) {
-            if (try? fileManager.createDirectory(atPath: directory ?? "", withIntermediateDirectories: true, attributes: nil)) == nil {
-                ret = false
-                if let anError = fileError {
-                    print("\(anError)")
-                }
+        do {
+            if !(fileManager.fileExists(atPath: directory )) {
+                try fileManager.createDirectory(atPath: directory, withIntermediateDirectories: true, attributes: nil)
             }
+        } catch {
+            ret = false
+            print("\(error)")
         }
         return ret
     }
     
-    func load(fromRemoteProperties remoteHash: [String : Any]?) {
+    func load(fromRemoteProperties remoteHash: [String : Any]) {
         if let properties = getAllPropertyMappings() {
-            for (key,_) in remoteHash! {
-                let propertyName = properties[key]
-                if responds(to: NSSelectorFromString(propertyName!)) {
-                    setValue(remoteHash?[key], forKey: propertyName ?? "")
-                    //            NSLog(@"loadRemote %@ %@ %@", key, propertyName, [remoteHash objectForKey:key] );
+            for (remoteKey,remoteValue) in remoteHash {
+               
+                if let propertyName = properties[remoteKey] {
+                    if let remoteValueTyped = remoteValue as? String {
+                        NSLog( "loadRemote %@=>%@", remoteKey, propertyName );
+                        setValue(remoteValueTyped, forKey: propertyName )
+                    }
                 }
             }
         }
