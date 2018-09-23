@@ -15,7 +15,7 @@ class BitweaverHTTPClient: AFHTTPClient {
     static let shared = BitweaverHTTPClient()
 
     override private init() {
-        apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_PKG_URI") as! String
+        apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_URI") as! String
         super.init(baseURL:URL(string: apiBaseUri))
     }
     

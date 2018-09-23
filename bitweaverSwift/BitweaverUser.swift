@@ -42,6 +42,8 @@ class BitweaverUser: BitweaverRestObject {
 
     var callbackSelectorName = ""
     var callbackObject: AnyObject?
+    
+    var products = Dictionary<String, BitcommerceProduct>()
 
     static let shared = BitweaverUser()
     
@@ -83,7 +85,7 @@ class BitweaverUser: BitweaverRestObject {
         return userId != nil
     }
 
-    func verifyAuthentication(_ object: PdfPhotoBookProduct?, selectorName: String?, callbackParameter: Any?) -> Bool {
+    func verifyAuthentication(_ object: PdfBookProduct?, selectorName: String?, callbackParameter: Any?) -> Bool {
         if !isAuthenticated() {
             callbackObject = object
             callbackSelectorName = selectorName ?? ""
