@@ -26,7 +26,7 @@ class BitweaverLoginViewController: NSViewController {
         }
     }
     
-    func authenticationResponse( success:Bool, message:String, response:HTTPURLResponse ) {
+    func authenticationResponse( success:Bool, message:String ) {
         if( success ) {
             dismiss(nil)
         } else {
@@ -34,7 +34,7 @@ class BitweaverLoginViewController: NSViewController {
         }
     }
     
-    func registrationResponse( success:Bool, message:String, response:HTTPURLResponse ) {
+    func registrationResponse( success:Bool, message:String ) {
         if( success ) {
             dismiss(nil)
         } else {

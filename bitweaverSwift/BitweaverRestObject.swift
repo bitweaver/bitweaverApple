@@ -18,7 +18,9 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var displayUri:String = ""      /* URL of the */
     @objc dynamic var dateCreated = ""
     @objc dynamic var dateLastModified = ""
-
+    
+    var productHash: [String : Any] = [:]
+    
     func getAllPropertyMappings() -> [String : String]? {
         var mappings = [
             "content_id" : "contentId",
@@ -65,9 +67,9 @@ class BitweaverRestObject: NSObject {
     }
     
     func load(fromRemoteProperties remoteHash: [String : Any]) {
+        productHash = remoteHash
         if let properties = getAllPropertyMappings() {
             for (remoteKey,remoteValue) in remoteHash {
-               
                 if let propertyName = properties[remoteKey] {
                     if let remoteValueTyped = remoteValue as? String {
                         NSLog( "loadRemote %@=>%@", remoteKey, propertyName );

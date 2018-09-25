@@ -16,6 +16,7 @@
 //
 
 import Foundation
+import Alamofire
 
 let gBitUser = BitweaverUser.shared
 
@@ -89,7 +90,7 @@ class BitweaverUser: BitweaverRestObject {
         if !isAuthenticated() {
             callbackObject = object
             callbackSelectorName = selectorName ?? ""
-            APPDELEGATE.showAuthenticationDialog()
+            gBitSystem.showAuthenticationDialog()
         } else {
 //clang diagnostic push
 //clang diagnostic ignored "-Warc-performSelector-leaks"
@@ -113,6 +114,7 @@ class BitweaverUser: BitweaverRestObject {
             }
             parameters["password"] = authPassword
         }
+/* SWIFTCONVERT
         let putRequest: NSMutableURLRequest? = gBitweaverHTTPClient.multipartFormRequest(withMethod: "POST", path: "users", parameters: parameters, constructingBodyWith: { formData in })
 
         gBitweaverHTTPClient.prepareRequestHeaders(putRequest)
@@ -127,15 +129,62 @@ class BitweaverUser: BitweaverRestObject {
         }) {
             OperationQueue().addOperation(operation)
         }
+ */
     }
 
     func authenticate( authLogin:String, authPassword:String, handler:BitweaverLoginViewController ) {
         var ret: Bool = false
         var errorMessage: String = ""
         
-        APPDELEGATE.authLogin = authLogin
-        APPDELEGATE.authPassword = authPassword
+        
+        let credentialData = "\(authLogin):\(authPassword)".data(using: String.Encoding.utf8)!
+        let base64Credentials = credentialData.base64EncodedString(options: [])
+        var headers = gBitSystem.httpHeaders()
+        headers["Authorization"] = "Basic \(base64Credentials)"
+        
+        Alamofire.request(gBitSystem.apiBaseUri+"users/authenticate",
+                          method: .get,
+                          parameters: nil,
+                          encoding: URLEncoding.default,
+                          headers:headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                    case .success :
+                        ret = true
+                        
+                        // cache login credentials
+                        gBitSystem.authLogin = authLogin
+                        gBitSystem.authPassword = authPassword
+                        
+                        // Set all cookies so subsequent requests pass on info
+                        var cookies: [HTTPCookie] = []
+                        if let aFields = response.response?.allHeaderFields as? [String : String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
+                            cookies = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
+                        }
+                        
+                        if cookies.count > 0 {
+                            for cookie in cookies {
+                                HTTPCookieStorage.shared.setCookie(cookie)
+                            }
+                        }
 
+                        if let properties = response.result.value as? [String: Any] {
+                            self.load(fromRemoteProperties:properties)
+                            gBitSystem.authenticationSuccess()
+                            // Send a notification event user has just logged in.
+                            NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
+                        }
+                        
+                        handler.authenticationResponse(success: ret, message: errorMessage )
+                    case .failure :
+                        // errorMessage = gBitSystem.httpError( response:response, request:response.request! )!
+                        errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
+                        //gBitSystem.authenticationFailure(with: request, response: response, error: response.error, json: response.result.value)
+                        handler.authenticationResponse(success: ret, message: errorMessage )
+                    }
+                }
+/* SWIFTCONVERT
         if let operation = AFJSONRequestOperation(request: gBitweaverHTTPClient.request(withPath: "users/authenticate") as URLRequest?, success: { request, response, JSON in
                 ret = true
                 // Set all cookies so subsequent requests pass on info
@@ -168,11 +217,12 @@ class BitweaverUser: BitweaverRestObject {
         }) {
             OperationQueue().addOperation(operation)
         }
+ */
     }
 
     func logout() {
-        APPDELEGATE.authLogin = ""
-        APPDELEGATE.authPassword = ""
+        gBitSystem.authLogin = ""
+        gBitSystem.authPassword = ""
         if let properties = getAllPropertyMappings() {
             for (key,_) in properties {
                 if let varName = properties[key] {
