@@ -101,8 +101,8 @@ class BitweaverUser: BitweaverRestObject {
     }
 
     func register(_ authLogin:String, withPassword authPassword:String, handler:BitweaverLoginViewController) {
-        var ret: Bool = false
-        var errorMessage: String = ""
+        //var ret: Bool = false
+        //var errorMessage: String = ""
 
         // Assume login was email field, update here for registration
         self.email = authLogin

@@ -34,6 +34,10 @@ class BitcommerceProduct: BitweaverRestObject {
         return mappings
     }
 
+    override func load(fromRemoteProperties remoteHash: [String : Any]) {
+        super.load(fromRemoteProperties: remoteHash)
+    }
+    
     override func getSendablePropertyMappings() -> [String : String]? {
         var mappings = [
             "product_type_class" : "productTypeClass"
@@ -96,9 +100,8 @@ class BitcommerceProduct: BitweaverRestObject {
                         // Send a notification event user has just logged in.
                     NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
                 case .failure :
-                    // errorMessage = gBitSystem.httpError( response:response, request:response.request! )!
-                    let errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
-                    //gBitSystem.authenticationFailure(with: request, response: response, error: response.error, json: response.result.value)
+                    //let errorMessage = gBitSystem.httpError( response:response, request:response.request )
+                    //gBitSystem.log( errorMessage )
                     completion( [:] )
                 }
         }

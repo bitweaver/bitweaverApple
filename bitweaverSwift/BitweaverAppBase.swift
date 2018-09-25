@@ -44,42 +44,47 @@ class BitweaverAppBase: NSObject {
         return headers
     }
     
-    func httpError(response: DataResponse<Any>, request: URLRequest) -> String? {
+    func httpError(response: DataResponse<Any>, request: URLRequest?) -> String? {
+        var logMessage = ""
         if let error = response.error as? AFError {
             switch error {
             case .invalidURL(let url):
-                print("Invalid URL: \(url) - \(error.localizedDescription)")
+                logMessage += "Invalid URL: \(url) - \(error.localizedDescription)\n"
             case .parameterEncodingFailed(let reason):
-                print("Parameter encoding failed: \(error.localizedDescription)")
-                print("Failure Reason: \(reason)")
+                logMessage += "Parameter encoding failed: \(error.localizedDescription)"
+                logMessage += "\nFailure Reason: \(reason)"
             case .multipartEncodingFailed(let reason):
-                print("Multipart encoding failed: \(error.localizedDescription)")
-                print("Failure Reason: \(reason)")
+                logMessage += "Multipart encoding failed: \(error.localizedDescription)"
+                logMessage += "\nFailure Reason: \(reason)"
             case .responseValidationFailed(let reason):
-                print("Response validation failed: \(error.localizedDescription)")
-                print("Failure Reason: \(reason)")
+                logMessage += "Response validation failed: \(error.localizedDescription)"
+                logMessage += "\nFailure Reason: \(reason)"
                 
                 switch reason {
                 case .dataFileNil, .dataFileReadFailed:
-                    print("Downloaded file could not be read")
+                    logMessage += "\nDownloaded file could not be read"
                 case .missingContentType(let acceptableContentTypes):
-                    print("Content Type Missing: \(acceptableContentTypes)")
+                    logMessage += "\nContent Type Missing: \(acceptableContentTypes)"
                 case .unacceptableContentType(let acceptableContentTypes, let responseContentType):
-                    print("Response content type: \(responseContentType) was unacceptable: \(acceptableContentTypes)")
+                    logMessage += "\nResponse content type: \(responseContentType) was unacceptable: \(acceptableContentTypes)"
                 case .unacceptableStatusCode(let code):
-                    print("Response status code was unacceptable: \(code)")
+                    logMessage += "\nResponse status code was unacceptable: \(code)"
                 }
             case .responseSerializationFailed(let reason):
-                print("Response serialization failed: \(error.localizedDescription)")
-                print("Failure Reason: \(reason)")
+                logMessage += "Response serialization failed: \(error.localizedDescription)"
+                logMessage += "\nFailure Reason: \(reason)"
             }
             
-            print("Underlying error: \(error.underlyingError)")
+            if (error.underlyingError != nil) {
+                logMessage += "\nUnderlying error: "//\(error.underlyingError)"
+            }
         } else if let error = response.error as? URLError {
-            print("URLError occurred: \(error)")
+            logMessage += "\nURLError occurred: \(error)"
         } else {
-            print("Unknown error: \(response.error)")
+            logMessage += "\nUnknown error: "//\(response.error)"
         }
+
+        //OSLog("This is info that may be helpful during development or debugging.", log: .default, type: .error)
         
         var errorMessage = ""
         if let statusCode = response.response?.statusCode {
@@ -89,7 +94,7 @@ class BitweaverAppBase: NSObject {
                 errorMessage += "Unknown error."
             }
             
-            if let anURL = request.url {
+            if let anURL = request?.url {
                 return String(format: "%@(ERR %ld %@)", errorMessage, statusCode, anURL as CVarArg)
             }
         }
