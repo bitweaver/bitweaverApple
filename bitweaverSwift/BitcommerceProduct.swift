@@ -19,7 +19,7 @@ class BitcommerceProduct: BitweaverRestObject {
     var enabled: [Bool] = []
     var images: [String:String] = [:]
 
-    convenience init(fromHash hash: [String : String]) {
+    convenience init(fromHash hash: [String : Any]) {
         self.init()
         load(fromRemoteProperties: hash)
     }
@@ -89,9 +89,9 @@ class BitcommerceProduct: BitweaverRestObject {
                                     //case "AlbumDesignerProduct":
                                     case "PdfBookProduct":
                                         //productClass = NSClassFromString(className) as! PdfBookProduct
-                                        productList[productId] = PdfBookProduct.init(fromHash: hash as! [String : String])
+                                        productList[productId] = PdfBookProduct.init(fromHash: hash as! [String : Any])
                                     default:
-                                        productList[productId] = BitcommerceProduct.init(fromHash: hash as! [String : String])
+                                        productList[productId] = BitcommerceProduct.init(fromHash: hash as! [String : Any])
                                 }
                                 
                             }
