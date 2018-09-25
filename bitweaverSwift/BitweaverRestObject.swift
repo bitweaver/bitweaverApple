@@ -16,8 +16,8 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var userId: NSNumber?       /* User ID on the remote system that created the content */
     @objc dynamic var title:String = ""           /* Title of the content */
     @objc dynamic var displayUri:String = ""      /* URL of the */
-    @objc dynamic var dateCreated = ""
-    @objc dynamic var dateLastModified = ""
+    @objc dynamic var dateCreated = Date()
+    @objc dynamic var dateLastModified = Date()
     
     var productHash: [String : Any] = [:]
     
@@ -71,9 +71,19 @@ class BitweaverRestObject: NSObject {
         if let properties = getAllPropertyMappings() {
             for (remoteKey,remoteValue) in remoteHash {
                 if let propertyName = properties[remoteKey] {
-                    if let remoteValueTyped = remoteValue as? String {
+                    if let remoteValueString = remoteValue as? String {
                         NSLog( "loadRemote %@=>%@", remoteKey, propertyName );
-                        setValue(remoteValueTyped, forKey: propertyName )
+                        if propertyName.hasPrefix("date") {
+                            let RFC3339DateFormatter = DateFormatter()
+                            RFC3339DateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                            RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+                            RFC3339DateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+                            let remoteValueDate = RFC3339DateFormatter.date(from: remoteValueString)
+                        
+                            setValue(remoteValueDate, forKey: propertyName )
+                        } else {
+                            setValue(remoteValueString, forKey: propertyName )
+                        }
                     }
                 }
             }
