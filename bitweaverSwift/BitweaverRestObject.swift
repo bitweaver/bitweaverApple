@@ -15,18 +15,23 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var contentId: NSNumber?    /* Content ID created by remote system */
     @objc dynamic var userId: NSNumber?       /* User ID on the remote system that created the content */
     @objc dynamic var title:String = ""           /* Title of the content */
-    @objc dynamic var displayUri:String = ""      /* URL of the */
-    @objc dynamic var dateCreated = Date()
-    @objc dynamic var dateLastModified = Date()
+    @objc dynamic var displayUri:URL!      /* URL of the */
+    @objc dynamic var createdDate = Date()
+    @objc dynamic var lastModifiedDate = Date()
     
     var productHash: [String : Any] = [:]
+    
+    override init() {
+        super.init()
+        
+    }
     
     func getAllPropertyMappings() -> [String : String]? {
         var mappings = [
             "content_id" : "contentId",
             "user_id" : "userId",
-            "date_created" : "dateCreated",
-            "date_last_modified" : "dateLastModified",
+            "date_created" : "createdDate",
+            "date_last_modified" : "lastModifiedDate",
             "uuid" : "uuId",
             "display_uri" : "displayUri"
         ]
@@ -38,6 +43,10 @@ class BitweaverRestObject: NSObject {
         return mappings
     }
 
+    func getField(_ name:String ) -> Any {
+        return productHash[name] as Any
+    }
+    
     func getSendablePropertyMappings() -> [String : String]? {
         let mappings = [
             "title" : "title"
@@ -73,7 +82,7 @@ class BitweaverRestObject: NSObject {
                 if let propertyName = properties[remoteKey] {
                     if let remoteValueString = remoteValue as? String {
                         NSLog( "loadRemote %@=>%@", remoteKey, propertyName );
-                        if propertyName.hasPrefix("date") {
+                        if propertyName.hasSuffix("Date") {
                             let RFC3339DateFormatter = DateFormatter()
                             RFC3339DateFormatter.locale = Locale(identifier: "en_US_POSIX")
                             RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
@@ -81,6 +90,9 @@ class BitweaverRestObject: NSObject {
                             let remoteValueDate = RFC3339DateFormatter.date(from: remoteValueString)
                         
                             setValue(remoteValueDate, forKey: propertyName )
+                        } else if propertyName.hasSuffix("Uri") {
+                            let remoteValueUri = URL.init(string: remoteValueString)
+                            setValue(remoteValueUri, forKey: propertyName )
                         } else {
                             setValue(remoteValueString, forKey: propertyName )
                         }
