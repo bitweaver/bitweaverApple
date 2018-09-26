@@ -8,7 +8,7 @@
 
 import Cocoa
 
-class BitweaverLoginViewController: NSViewController {
+class BitweaverLoginViewController: BWViewController {
     @IBOutlet weak var emailInput: NSTextField!
     @IBOutlet weak var passwordInput: NSSecureTextField!
     @IBOutlet weak var feedbackLabel: NSTextField!

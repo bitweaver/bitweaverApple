@@ -14,7 +14,8 @@ class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
     @objc dynamic var productTypeName = ""
-    @objc dynamic var productTypeClass = ""
+    @objc dynamic var productTypeClass:String = ""
+    @objc dynamic var productModel:String = ""
     @objc dynamic var productDefaultImage = ""
     var enabled: [Bool] = []
     var images: [String:String] = [:]
@@ -27,6 +28,7 @@ class BitcommerceProduct: BitweaverRestObject {
     override func getAllPropertyMappings() -> [String : String]? {
         var mappings = [
             "product_id" : "productId",
+            "product_model" : "productModel",
             "product_default_image" : "productDefaultImage"
         ]
 
@@ -48,6 +50,25 @@ class BitcommerceProduct: BitweaverRestObject {
 
     func isValid() -> Bool {
         return productId != nil
+    }
+
+    func getViewController() -> BWViewController {
+        let controllerClass:String = self.productTypeClass+"ViewController";
+        print(controllerClass)
+        if let ret: BWViewController.Type = NSClassFromString( Bundle.main.infoDictionary!["CFBundleName"] as! String + "." + controllerClass ) as? BWViewController.Type {
+            return ret.init()
+        } else {
+            return BitcommerceProductViewController.init()
+        }
+    }
+    
+    func getTypeImage() -> BWImage {
+        var ret = BWImage.init(named: "NSAdvanced")
+        if let defaultImage = productHash["product_default_image"] as? String {
+            let imageUrl = URL.init(fileURLWithPath: defaultImage)
+            ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent)
+        }
+        return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
     static func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
@@ -89,9 +110,9 @@ class BitcommerceProduct: BitweaverRestObject {
                                     //case "AlbumDesignerProduct":
                                     case "PdfBookProduct":
                                         //productClass = NSClassFromString(className) as! PdfBookProduct
-                                        productList[productId] = PdfBookProduct.init(fromHash: hash as! [String : Any])
+                                        productList[productId] = PdfBookProduct.init(fromHash: hash)
                                     default:
-                                        productList[productId] = BitcommerceProduct.init(fromHash: hash as! [String : Any])
+                                        productList[productId] = BitcommerceProduct.init(fromHash: hash)
                                 }
                                 
                             }

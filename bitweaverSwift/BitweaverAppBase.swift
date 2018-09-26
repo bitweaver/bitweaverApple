@@ -14,7 +14,28 @@
 //
 
 import Foundation
+import Cocoa
 import Alamofire
+
+// App wide alias for iOS and macOS cross platform convenience
+typealias BWImage = NSImage
+typealias BWViewController = NSViewController
+
+// Step 2: You might want to add these APIs that UIImage has but NSImage doesn't.
+extension NSImage {
+    var cgImage: CGImage? {
+        var proposedRect = CGRect(origin: .zero, size: size)
+        
+        return cgImage(forProposedRect: &proposedRect,
+                       context: nil,
+                       hints: nil)
+    }
+    //    convenience init?(named name: String) {
+    //        self.init(named: Name(name))
+    //    }
+}
+
+
 
 class BitweaverAppBase: NSObject {
     var authLogin: String = ""
