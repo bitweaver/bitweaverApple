@@ -86,7 +86,7 @@ class BitweaverUser: BitweaverRestObject {
         return userId != nil
     }
 
-    func verifyAuthentication(_ object: PdfBookProduct?, selectorName: String?, callbackParameter: Any?) -> Bool {
+    func verifyAuthentication(_ object: BitcommerceProduct?, selectorName: String?, callbackParameter: Any?) -> Bool {
         if !isAuthenticated() {
             callbackObject = object
             callbackSelectorName = selectorName ?? ""
