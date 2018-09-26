@@ -6,7 +6,7 @@
 //  Created by Christian Fowler on 4/9/12.
 //  Copyright (c) 2012 Viovio.com. All rights reserved.
 //
-/*
+
 let gBitweaverHTTPClient = BitweaverHTTPClient.shared
 
 class BitweaverHTTPClient: AFHTTPClient {
@@ -63,4 +63,4 @@ class BitweaverHTTPClient: AFHTTPClient {
         return nil
     }
 }
-*/
+
