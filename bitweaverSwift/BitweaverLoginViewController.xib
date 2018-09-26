@@ -23,7 +23,7 @@
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2eH-tt-woS">
                     <rect key="frame" x="20" y="113" width="101" height="101"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="prestophoto_icon" imagePosition="only" alignment="center" alternateImage="NSUser" imageScaling="proportionallyUpOrDown" inset="2" id="mFP-2q-Din">
+                    <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="icon_login" imagePosition="only" alignment="center" alternateImage="NSUser" imageScaling="proportionallyUpOrDown" inset="2" id="mFP-2q-Din">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -40,7 +40,7 @@
                 <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="B0M-Np-3eH">
                     <rect key="frame" x="208" y="153" width="236" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" title="test" drawsBackground="YES" id="usA-Xp-7JX">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="usA-Xp-7JX">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -101,7 +101,7 @@ Gw
                 <secureTextField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fat-HP-UTp">
                     <rect key="frame" x="208" y="126" width="236" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" title="asdfasdf" drawsBackground="YES" usesSingleLineMode="YES" id="2Xq-Kj-RbZ">
+                    <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="2Xq-Kj-RbZ">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -125,6 +125,6 @@ Gw
     </objects>
     <resources>
         <image name="NSUser" width="32" height="32"/>
-        <image name="prestophoto_icon" width="61.439998626708984" height="61.439998626708984"/>
+        <image name="icon_login" width="128" height="128"/>
     </resources>
 </document>
