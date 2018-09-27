@@ -35,7 +35,11 @@ extension NSImage {
     //    }
 }
 
-
+extension NSObject {
+    var myClassName: String {
+        return NSStringFromClass(type(of: self))
+    }
+}
 
 class BitweaverAppBase: NSObject {
     var authLogin: String = ""
