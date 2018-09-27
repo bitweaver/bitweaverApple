@@ -71,7 +71,30 @@ class BitcommerceProduct: BitweaverRestObject {
         return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
-    static func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
+    func jsonToProducts(withHash jsonList:[String: [String:Any]] ) -> Dictionary<String, BitcommerceProduct> {
+        var productList = Dictionary<String, BitcommerceProduct>()
+        for (productId,hash) in jsonList as [String : [String:Any]] {
+            var classNames:[String] = []
+            if hash["product_type_class"] != nil {
+                classNames.append( hash["product_type_class"] as! String )
+            }
+            classNames.append(self.myClassName)
+
+            for className in classNames {
+                if let productClass = NSClassFromString(className) as? NSObject.Type {
+                    let productObject = productClass.init()
+                    if productObject is BitcommerceProduct {
+                        productList[productId] = productObject as? BitcommerceProduct
+                        productList[productId]?.load(fromRemoteProperties:hash)
+                        break
+                    }
+                }
+            }
+        }
+        return productList
+    }
+    
+    func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
         let headers = gBitSystem.httpHeaders()
         Alamofire.request(gBitSystem.apiBaseUri+"products/list",
                           method: .get,
@@ -83,42 +106,10 @@ class BitcommerceProduct: BitweaverRestObject {
                 switch response.result {
                 case .success :
                     if let jsonList = response.result.value as? [String: [String:Any]] {
-                        var productList = Dictionary<String, BitcommerceProduct>()
-                            for (productId,hash) in jsonList as [String : [String:Any]] {
-                                var className = "BitcommerceProduct"
-                                if hash["product_type_class"] != nil {
-                                    className = hash["product_type_class"] as! String
-                                }
-                                
-                                switch className {
-                                    //case "ArtDesignerProduct":
-                                    //case "PrintSetDesignerProduct":
-                                    //case "DigitalProduct":
-                                    //case "BookMachineProduct":
-                                    //case "PhotoPrintProduct":
-                                    //case "ApiDesignerProduct":
-                                    //case "BookDesignerProduct":
-                                    //case "ApiPdfProduct":
-                                    //case "GiftDesignerProduct":
-                                    //case "TextBookPdfProduct":
-                                    //case "PrintSetPdfProduct":
-                                    //case "CalendarPdfProduct":
-                                    //case "CalendarDesignerProduct":
-                                    //case "CardDesignerProduct":
-                                    //case "TextDesignerProduct":
-                                    //case "AlbumPdfProduct":
-                                    //case "AlbumDesignerProduct":
-                                    case "PdfBookProduct":
-                                        //productClass = NSClassFromString(className) as! PdfBookProduct
-                                        productList[productId] = PdfBookProduct.init(fromHash: hash)
-                                    default:
-                                        productList[productId] = BitcommerceProduct.init(fromHash: hash)
-                                }
-                                
-                            }
-                            completion( productList )
-                        }
-                        // Send a notification event user has just logged in.
+                        let productList = self.jsonToProducts(withHash: jsonList)
+                        completion( productList )
+                    }
+                    // Send a notification event user has just logged in.
                     NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
                 case .failure :
                     //let errorMessage = gBitSystem.httpError( response:response, request:response.request )
@@ -126,51 +117,5 @@ class BitcommerceProduct: BitweaverRestObject {
                     completion( [:] )
                 }
         }
-
-/* SWIFTCONVERT
-        if let operation = AFJSONRequestOperation(request: gBitweaverHTTPClient.request(withPath: "products/list")! as URLRequest, success: { request, response, JSON in
-            var productList = Dictionary<String, BitcommerceProduct>()
-            if (JSON is [String : Any]) {
-                for (productId,hash) in JSON as! [String : [String:Any]] {
-                    var className = "BitcommerceProduct"
-                    if hash["products_class"] != nil {
-                        className = hash["products_class"] as! String
-                    }
-                    
-                    switch className {
-                    //case "ArtDesignerProduct":
-                    //case "PrintSetDesignerProduct":
-                    //case "DigitalProduct":
-                    //case "BookMachineProduct":
-                    //case "PhotoPrintProduct":
-                    //case "ApiDesignerProduct":
-                    //case "BookDesignerProduct":
-                    //case "ApiPdfProduct":
-                    //case "GiftDesignerProduct":
-                    //case "TextBookPdfProduct":
-                    //case "PrintSetPdfProduct":
-                    //case "CalendarPdfProduct":
-                    //case "CalendarDesignerProduct":
-                    //case "CardDesignerProduct":
-                    //case "TextDesignerProduct":
-                    //case "AlbumPdfProduct":
-                    //case "AlbumDesignerProduct":
-                    case "PdfBookProduct":
-                        //productClass = NSClassFromString(className) as! PdfBookProduct
-                        productList[productId] = PdfBookProduct.init(fromHash: hash as! [String : String])
-                    default:
-                        productList[productId] = BitcommerceProduct.init(fromHash: hash as! [String : String])
-                    }
-
-                }
-            }
-            completion( productList )
-            // Send a notification event user has just logged in.
-            NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
-        }, failure: { request, response, error, JSON in
-        }) {
-            OperationQueue().addOperation(operation)
-        }
- */
     }
 }
