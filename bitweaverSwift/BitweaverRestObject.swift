@@ -9,6 +9,7 @@
 
 import Foundation
 
+@objc(BitweaverRestObject)
 class BitweaverRestObject: NSObject {
     // REST Mappable properties
     @objc dynamic var uuId:String = ""            /* Universal Unique ID for content, created by your app */
@@ -91,8 +92,11 @@ class BitweaverRestObject: NSObject {
                         
                             setValue(remoteValueDate, forKey: propertyName )
                         } else if propertyName.hasSuffix("Uri") {
-                            let remoteValueUri = URL.init(string: remoteValueString)
-                            setValue(remoteValueUri, forKey: propertyName )
+                            let nativeValue = URL.init(string: remoteValueString)
+                            setValue(nativeValue, forKey: propertyName )
+                        } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
+                            let nativeValue = Int(remoteValueString)
+                            setValue(nativeValue, forKey: propertyName )
                         } else {
                             setValue(remoteValueString, forKey: propertyName )
                         }
