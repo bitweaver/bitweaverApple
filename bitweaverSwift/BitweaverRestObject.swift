@@ -20,11 +20,10 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var createdDate = Date()
     @objc dynamic var lastModifiedDate = Date()
     
-    var productHash: [String : Any] = [:]
+    var productHash: [String:Any] = [:]
     
     override init() {
         super.init()
-        
     }
     
     func getAllPropertyMappings() -> [String : String]? {
@@ -76,30 +75,44 @@ class BitweaverRestObject: NSObject {
         return ret
     }
     
-    func load(fromRemoteProperties remoteHash: [String : Any]) {
+    func load(fromRemoteProperties remoteHash: [String:Any]) {
         productHash = remoteHash
         if let properties = getAllPropertyMappings() {
             for (remoteKey,remoteValue) in remoteHash {
                 if let propertyName = properties[remoteKey] {
-                    if let remoteValueString = remoteValue as? String {
-                        NSLog( "loadRemote %@=>%@", remoteKey, propertyName );
-                        if propertyName.hasSuffix("Date") {
-                            let RFC3339DateFormatter = DateFormatter()
-                            RFC3339DateFormatter.locale = Locale(identifier: "en_US_POSIX")
-                            RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-                            RFC3339DateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-                            let remoteValueDate = RFC3339DateFormatter.date(from: remoteValueString)
-                        
-                            setValue(remoteValueDate, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Uri") {
-                            let nativeValue = URL.init(string: remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
-                            let nativeValue = Int(remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else {
-                            setValue(remoteValueString, forKey: propertyName )
+                    do {
+                        if let remoteValueString = remoteValue as? String {
+                            NSLog( "loadRemote %@=>%@ = %@", remoteKey, propertyName, remoteValueString );
+                            if propertyName.hasSuffix("Date") {
+                                let RFC3339DateFormatter = DateFormatter()
+                                RFC3339DateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                                RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+                                RFC3339DateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+                                let remoteValueDate = RFC3339DateFormatter.date(from: remoteValueString)
+                            
+                                setValue(remoteValueDate, forKey: propertyName )
+                            } else if propertyName.hasSuffix("Uri") {
+                                let nativeValue = URL.init(string: remoteValueString)
+                                setValue(nativeValue, forKey: propertyName )
+                            } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
+                                let nativeValue = Int(remoteValueString)
+                                setValue(nativeValue, forKey: propertyName )
+                            } else if propertyName.hasSuffix("Color") {
+                                let nativeValue = BWColor.init(hexString: remoteValueString)
+                                setValue(nativeValue, forKey: propertyName )
+                            } else if propertyName.hasSuffix("Image") {
+                                if let remoteUrl = URL.init(string: remoteValueString) {
+                                    let nativeValue = BWImage.init(byReferencing: remoteUrl )
+                                    setValue(nativeValue, forKey: propertyName )
+                                }
+                            } else if remoteValue is Array<Any> {
+                                print( "have dictAtrin" )
+                            } else {
+                                setValue(remoteValueString, forKey: propertyName )
+                            }
                         }
+                    } catch {
+                        gBitSystem.log("loadRemote failed: %@ = %@ => %@", remoteKey, remoteValue, propertyName)
                     }
                 }
             }

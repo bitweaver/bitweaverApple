@@ -159,7 +159,7 @@ class BitweaverUser: BitweaverRestObject {
                         
                         // Set all cookies so subsequent requests pass on info
                         var cookies: [HTTPCookie] = []
-                        if let aFields = response.response?.allHeaderFields as? [String : String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
+                        if let aFields = response.response?.allHeaderFields as? [String:String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
                             cookies = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
                         }
                         
@@ -169,7 +169,7 @@ class BitweaverUser: BitweaverRestObject {
                             }
                         }
 
-                        if let properties = response.result.value as? [String: Any] {
+                        if let properties = response.result.value as? [String:Any] {
                             self.load(fromRemoteProperties:properties)
                             gBitSystem.authenticationSuccess()
                             // Send a notification event user has just logged in.
@@ -241,7 +241,7 @@ class BitweaverUser: BitweaverRestObject {
         NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }
 
-    override func load(fromRemoteProperties remoteHash: [String : Any]) {
+    override func load(fromRemoteProperties remoteHash: [String:Any]) {
         super.load(fromRemoteProperties: remoteHash)
         NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
     }

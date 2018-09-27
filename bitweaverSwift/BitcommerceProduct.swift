@@ -13,14 +13,14 @@ import Alamofire
 class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
-    @objc dynamic var productTypeName = ""
-    @objc dynamic var productTypeClass:String = ""
-    @objc dynamic var productModel:String = ""
-    @objc dynamic var productDefaultImage = ""
+    @objc dynamic var productTypeName: String = ""
+    @objc dynamic var productTypeClass: String = ""
+    @objc dynamic var productModel: String = ""
+    @objc dynamic var productDefaultIcon: String = ""
     var enabled: [Bool] = []
     var images: [String:String] = [:]
 
-    convenience init(fromHash hash: [String : Any]) {
+    convenience init(fromHash hash: [String:Any]) {
         self.init()
         load(fromRemoteProperties: hash)
     }
@@ -29,14 +29,15 @@ class BitcommerceProduct: BitweaverRestObject {
         var mappings = [
             "product_id" : "productId",
             "product_model" : "productModel",
-            "product_default_image" : "productDefaultImage"
+            "product_type_name" : "productTypeName",
+            "product_type_icon" : "productDefaultIcon"
         ]
 
         for (k, v) in super.getAllPropertyMappings()! { mappings[k] = v }
         return mappings
     }
 
-    override func load(fromRemoteProperties remoteHash: [String : Any]) {
+    override func load(fromRemoteProperties remoteHash: [String:Any]) {
         super.load(fromRemoteProperties: remoteHash)
     }
     
@@ -64,16 +65,16 @@ class BitcommerceProduct: BitweaverRestObject {
     
     func getTypeImage() -> BWImage {
         var ret = BWImage.init(named: "NSAdvanced")
-        if let defaultImage = productHash["product_default_image"] as? String {
+        if let defaultImage = productHash["product_type_icon"] as? String {
             let imageUrl = URL.init(fileURLWithPath: defaultImage)
             ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent)
         }
         return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
-    func jsonToProducts(withHash jsonList:[String: [String:Any]] ) -> Dictionary<String, BitcommerceProduct> {
+    func jsonToProducts(withHash jsonList: [String: [String:Any]] ) -> Dictionary<String, BitcommerceProduct> {
         var productList = Dictionary<String, BitcommerceProduct>()
-        for (productId,hash) in jsonList as [String : [String:Any]] {
+        for (productId,hash) in jsonList as [String: [String:Any]] {
             var classNames:[String] = []
             if hash["product_type_class"] != nil {
                 classNames.append( hash["product_type_class"] as! String )
