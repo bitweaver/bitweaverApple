@@ -19,6 +19,16 @@ extension NSObject {
     }
 }
 
+extension String {
+    func toDateISO8601() -> Date? {
+        let RFC3339DateFormatter = DateFormatter()
+        RFC3339DateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+        RFC3339DateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return RFC3339DateFormatter.date(from: self)
+    }
+}
+
 extension BWImage {
     var cgImage: CGImage? {
         var proposedRect = CGRect(origin: .zero, size: size)
@@ -69,3 +79,4 @@ extension BWColor {
         return String(format:"#%06x", rgb)
     }
 }
+
