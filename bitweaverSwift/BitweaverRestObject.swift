@@ -84,13 +84,7 @@ class BitweaverRestObject: NSObject {
                         if let remoteValueString = remoteValue as? String {
                             NSLog( "loadRemote %@=>%@ = %@", remoteKey, propertyName, remoteValueString );
                             if propertyName.hasSuffix("Date") {
-                                let RFC3339DateFormatter = DateFormatter()
-                                RFC3339DateFormatter.locale = Locale(identifier: "en_US_POSIX")
-                                RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-                                RFC3339DateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-                                let remoteValueDate = RFC3339DateFormatter.date(from: remoteValueString)
-                            
-                                setValue(remoteValueDate, forKey: propertyName )
+                                setValue(remoteValueString.toDateISO8601(), forKey: propertyName )
                             } else if propertyName.hasSuffix("Uri") {
                                 let nativeValue = URL.init(string: remoteValueString)
                                 setValue(nativeValue, forKey: propertyName )
