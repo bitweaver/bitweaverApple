@@ -18,6 +18,7 @@ class BitweaverLoginViewController: BWViewController {
     @IBAction func cancel(_ sender: Any) {
         dismiss(nil)
     }
+    
     @IBAction func signin(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             gBitUser.authenticate( authLogin:emailInput.stringValue, authPassword: passwordInput.stringValue, handler:self)
