@@ -21,17 +21,11 @@ import Alamofire
 let gBitUser = BitweaverUser.active
 
 class BitweaverUser: BitweaverRestObject {
-    @objc dynamic var email = ""
-    @objc dynamic var login = ""
-    @objc dynamic var realName = ""
-    @objc dynamic var lastLogin = ""
-    @objc dynamic var currentLogin = ""
+    @objc dynamic var email:String?
+    @objc dynamic var login:String?
+    @objc dynamic var realName:String?
+    @objc dynamic var lastLogin:String?
     @objc dynamic var registrationDate:Date?
-    @objc dynamic var challenge = ""
-    @objc dynamic var passDue = ""
-    @objc dynamic var user = ""
-    @objc dynamic var valid = ""
-    @objc dynamic var isRegistered = ""
     @objc dynamic var portraitPath = ""
     @objc dynamic var portraitUrl:URL?
     @objc dynamic var avatarPath = ""
@@ -41,6 +35,16 @@ class BitweaverUser: BitweaverRestObject {
     @objc dynamic var firstName = ""
     @objc dynamic var lastName = ""
 
+    
+    var displayName:String {
+        get {
+            if isAuthenticated() {
+                return realName ?? (login ?? (email ?? ""))
+            }
+            return ""
+        }
+    }
+    
     var callbackSelectorName = ""
     var callbackObject: AnyObject?
     
@@ -61,10 +65,10 @@ class BitweaverUser: BitweaverRestObject {
     
     override func getAllPropertyMappings() -> [String:String] {
         var mappings = [
+            "user_id": "userId",
+            "login" : "login",
             "last_login" : "lastLogin",
-            "current_login" : "currentLogin",
             "registration_date" : "registrationDate",
-            "is_registered" : "isRegistered",
             "portrait_path" : "portraitPath",
             "portrait_url" : "portraitUrl",
             "avatar_path" : "avatarPath",
@@ -79,10 +83,7 @@ class BitweaverUser: BitweaverRestObject {
     override func getSendablePropertyMappings() -> [String:String] {
         var mappings = [
             "email" : "email",
-            "login" : "login",
-            "real_name" : "realName",
-            "user" : "user",
-            "user_id": "userId"
+            "real_name" : "realName"
         ]
         for (k, v) in super.getSendablePropertyMappings() { mappings[k] = v }
         return mappings

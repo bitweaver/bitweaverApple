@@ -13,7 +13,7 @@ import Alamofire
 class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
-    @objc dynamic var productTypeName: String = ""
+    @objc dynamic var productTypeName: String?
     @objc dynamic var productTypeClass: String = ""
     @objc dynamic var productModel: String = ""
     @objc dynamic var productDefaultIcon: String = ""

@@ -18,8 +18,8 @@ class BitweaverLogoutViewController: BWViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do view setup here.
-        userName.stringValue = gBitUser.realName ?? gBitUser.login ?? ""
-        email.stringValue = gBitUser.email
+        userName.stringValue = gBitUser.displayName
+        email.stringValue = gBitUser.email ?? ""
         registeredDate.stringValue = "Registered "+(gBitUser.registrationDate?.longString ?? "")
     }
     
