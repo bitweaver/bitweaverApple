@@ -45,34 +45,35 @@ class BitweaverAppBase: NSObject {
         return headers
     }
     
-    func httpError(response: DataResponse<Any>, request: URLRequest?) -> String? {
+    func httpError(response: DataResponse<Any>, request: URLRequest?) -> String {
+        var errorMessage = ""
         var logMessage = ""
         if let error = response.error as? AFError {
             switch error {
             case .invalidURL(let url):
-                logMessage += "Invalid URL: \(url) - \(error.localizedDescription)\n"
+                errorMessage += "Invalid URL: \(url) - \(error.localizedDescription)\n"
             case .parameterEncodingFailed(let reason):
-                logMessage += "Parameter encoding failed: \(error.localizedDescription)"
+                errorMessage += "Parameter encoding failed: \(error.localizedDescription)"
                 logMessage += "\nFailure Reason: \(reason)"
             case .multipartEncodingFailed(let reason):
-                logMessage += "Multipart encoding failed: \(error.localizedDescription)"
+                errorMessage += "Multipart encoding failed: \(error.localizedDescription)"
                 logMessage += "\nFailure Reason: \(reason)"
             case .responseValidationFailed(let reason):
-                logMessage += "Response validation failed: \(error.localizedDescription)"
+                errorMessage += "Response validation failed: \(error.localizedDescription)"
                 logMessage += "\nFailure Reason: \(reason)"
                 
                 switch reason {
-                case .dataFileNil, .dataFileReadFailed:
-                    logMessage += "\nDownloaded file could not be read"
-                case .missingContentType(let acceptableContentTypes):
-                    logMessage += "\nContent Type Missing: \(acceptableContentTypes)"
-                case .unacceptableContentType(let acceptableContentTypes, let responseContentType):
-                    logMessage += "\nResponse content type: \(responseContentType) was unacceptable: \(acceptableContentTypes)"
-                case .unacceptableStatusCode(let code):
-                    logMessage += "\nResponse status code was unacceptable: \(code)"
+                    case .dataFileNil, .dataFileReadFailed:
+                        logMessage += "\nDownloaded file could not be read"
+                    case .missingContentType(let acceptableContentTypes):
+                        logMessage += "\nContent Type Missing: \(acceptableContentTypes)"
+                    case .unacceptableContentType(let acceptableContentTypes, let responseContentType):
+                        logMessage += "\nResponse content type: \(responseContentType) was unacceptable: \(acceptableContentTypes)"
+                    case .unacceptableStatusCode(let code):
+                        logMessage += "\nResponse status code was unacceptable: \(code)"
                 }
             case .responseSerializationFailed(let reason):
-                logMessage += "Response serialization failed: \(error.localizedDescription)"
+                errorMessage += "Response serialization failed: \(error.localizedDescription)"
                 logMessage += "\nFailure Reason: \(reason)"
             }
             
@@ -80,26 +81,28 @@ class BitweaverAppBase: NSObject {
                 logMessage += "\nUnderlying error: "//\(error.underlyingError)"
             }
         } else if let error = response.error as? URLError {
-            logMessage += "\nURLError occurred: \(error)"
+            errorMessage += "\nURLError occurred: \(error)"
         } else {
-            logMessage += "\nUnknown error: "//\(response.error)"
+            if let messages = response.result.value as? [String:String] {
+                for (_,message) in messages {
+                    errorMessage += message+"\n"
+                }
+            } else if let statusCode = response.response?.statusCode {
+                if response.response?.statusCode == 408 {
+                    errorMessage += "Request timed out. Please check your internet connection."
+                }
+                
+                if let anURL = request?.url {
+                    return String(format: "\n%@(ERR %ld %@)", errorMessage, statusCode, anURL as CVarArg)
+                }
+            } else {
+                errorMessage += "Unknown error: "//\(response.error)"
+            }
         }
 
         //OSLog("This is info that may be helpful during development or debugging.", log: .default, type: .error)
         
-        var errorMessage = ""
-        if let statusCode = response.response?.statusCode {
-            if response.response?.statusCode == 408 {
-                errorMessage += "Request timed out. Please check your internet connection."
-            } else {
-                errorMessage += "Unknown error."
-            }
-            
-            if let anURL = request?.url {
-                return String(format: "%@(ERR %ld %@)", errorMessage, statusCode, anURL as CVarArg)
-            }
-        }
-        return nil
+        return errorMessage
     }
     
     static func fileForDataStorage(_ fileName:String,_ subDirectory:String? ) -> URL? {
@@ -129,11 +132,28 @@ class BitweaverAppBase: NSObject {
         
         return ret
     }
+    
+    static func log(_ format: String,_ args: Any...) {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        let timestamp = fmt.string(from: Date())
+        
+        let pinfo = ProcessInfo()
+        let pname = pinfo.processName
+        let pid = pinfo.processIdentifier
+        var tid = UInt64(0)
+        pthread_threadid_np(nil, &tid)
+        
+        var stringArgs:[CVarArg] = [];
+        for arg in args {
+            stringArgs.append(arg as! CVarArg)
+        }
+        
+        let logString = "\(timestamp) \(pname)[\(pid):\(tid)] " + String(format: format, arguments: stringArgs)
+        print(logString)
+    }
 }
 
 protocol BitweaverApp {
     func showAuthenticationDialog()
-    func authenticationSuccess()
-    func authenticationFailure(with request: URLRequest?, response: HTTPURLResponse?, error: Error?, json: Any?)
-    func registrationFailure(_ failureMessage: String?)
 }
