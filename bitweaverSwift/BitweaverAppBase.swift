@@ -100,7 +100,34 @@ class BitweaverAppBase: NSObject {
             }
         }
         return nil
+    }
+    
+    static func fileForDataStorage(_ fileName:String,_ subDirectory:String? ) -> URL? {
+        if let appFolder = dirForDataStorage(subDirectory) {
+            return appFolder.appendingPathComponent(fileName)
+        }
+        return nil
 
+    }
+    
+    static func dirForDataStorage(_ subDirectory:String? ) -> URL? {
+        let fileManager = FileManager.default
+        guard let orgFolder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        var ret:URL = orgFolder
+        if subDirectory != nil {
+            ret = orgFolder.appendingPathComponent(subDirectory!)
+        }
+        var isDirectory: ObjCBool = false
+        let folderExists = fileManager.fileExists(atPath: ret.path, isDirectory: &isDirectory)
+        if !folderExists || !isDirectory.boolValue {
+            do {
+                try fileManager.createDirectory(at: ret, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                return nil
+            }
+        }
+        
+        return ret
     }
 }
 

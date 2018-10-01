@@ -26,18 +26,18 @@ class BitweaverUser: BitweaverRestObject {
     @objc dynamic var realName = ""
     @objc dynamic var lastLogin = ""
     @objc dynamic var currentLogin = ""
-    @objc dynamic var registrationDate = ""
+    @objc dynamic var registrationDate:Date?
     @objc dynamic var challenge = ""
     @objc dynamic var passDue = ""
     @objc dynamic var user = ""
     @objc dynamic var valid = ""
     @objc dynamic var isRegistered = ""
     @objc dynamic var portraitPath = ""
-    @objc dynamic var portraitUrl = ""
+    @objc dynamic var portraitUrl:URL?
     @objc dynamic var avatarPath = ""
-    @objc dynamic var avatarUrl = ""
+    @objc dynamic var avatarUrl:URL?
     @objc dynamic var logoPath = ""
-    @objc dynamic var logoUrl = ""
+    @objc dynamic var logoUrl:URL?
     @objc dynamic var firstName = ""
     @objc dynamic var lastName = ""
 
@@ -52,9 +52,14 @@ class BitweaverUser: BitweaverRestObject {
     override private init(){
         super.init()
     }
+
+    override var primaryId:NSNumber? {
+        get {
+            return userId
+        }
+    }
     
-    
-    override func getAllPropertyMappings() -> [String:String]? {
+    override func getAllPropertyMappings() -> [String:String] {
         var mappings = [
             "last_login" : "lastLogin",
             "current_login" : "currentLogin",
@@ -67,18 +72,19 @@ class BitweaverUser: BitweaverRestObject {
             "logo_path" : "logoPath",
             "logo_url" : "logoUrl"
         ]
-        for (k, v) in super.getAllPropertyMappings()! { mappings[k] = v }
+        for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
         return mappings
     }
 
-    override func getSendablePropertyMappings() -> [String:String]? {
+    override func getSendablePropertyMappings() -> [String:String] {
         var mappings = [
             "email" : "email",
             "login" : "login",
             "real_name" : "realName",
-            "user" : "user"
+            "user" : "user",
+            "user_id": "userId"
         ]
-        for (k, v) in super.getSendablePropertyMappings()! { mappings[k] = v }
+        for (k, v) in super.getSendablePropertyMappings() { mappings[k] = v }
         return mappings
     }
 
@@ -108,12 +114,11 @@ class BitweaverUser: BitweaverRestObject {
         self.email = authLogin
 
         var parameters: [String:String] = [:]
-        if let properties = getSendablePropertyMappings() {
-            for (key,name) in properties {
-                parameters[key] = self.value(forKey:name) as? String
-            }
-            parameters["password"] = authPassword
+        let properties = getSendablePropertyMappings()
+        for (key,name) in properties {
+            parameters[key] = self.value(forKey:name) as? String
         }
+        parameters["password"] = authPassword
 /* SWIFTCONVERT
         let putRequest: NSMutableURLRequest? = gBitweaverHTTPClient.multipartFormRequest(withMethod: "POST", path: "users", parameters: parameters, constructingBodyWith: { formData in })
 
@@ -223,15 +228,15 @@ class BitweaverUser: BitweaverRestObject {
     func logout() {
         gBitSystem.authLogin = ""
         gBitSystem.authPassword = ""
-        if let properties = getAllPropertyMappings() {
-            for (key,_) in properties {
-                if let varName = properties[key] {
-                    if responds(to: NSSelectorFromString(varName)) {
-                        setValue(nil, forKey: varName )
-                    }
+        let properties = getAllPropertyMappings()
+        for (key,_) in properties {
+            if let varName = properties[key] {
+                if responds(to: NSSelectorFromString(varName)) {
+                    setValue(nil, forKey: varName )
                 }
             }
         }
+
         let cookieStorage = HTTPCookieStorage.shared
         for each: HTTPCookie? in cookieStorage.cookies ?? [] {
             if let anEach = each {
@@ -243,6 +248,10 @@ class BitweaverUser: BitweaverRestObject {
 
     override func load(fromRemoteProperties remoteHash: [String:Any]) {
         super.load(fromRemoteProperties: remoteHash)
-        NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
+        if userId != nil && userId!.intValue > 0 {
+            if storeToDisk() {
+            }
+            NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
+        }
     }
 }

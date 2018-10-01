@@ -25,7 +25,7 @@ class BitcommerceProduct: BitweaverRestObject {
         load(fromRemoteProperties: hash)
     }
 
-    override func getAllPropertyMappings() -> [String : String]? {
+    override func getAllPropertyMappings() -> [String : String] {
         var mappings = [
             "product_id" : "productId",
             "product_model" : "productModel",
@@ -33,7 +33,7 @@ class BitcommerceProduct: BitweaverRestObject {
             "product_type_icon" : "productDefaultIcon"
         ]
 
-        for (k, v) in super.getAllPropertyMappings()! { mappings[k] = v }
+        for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
         return mappings
     }
 
@@ -41,11 +41,11 @@ class BitcommerceProduct: BitweaverRestObject {
         super.load(fromRemoteProperties: remoteHash)
     }
     
-    override func getSendablePropertyMappings() -> [String : String]? {
+    override func getSendablePropertyMappings() -> [String : String] {
         var mappings = [
             "product_type_class" : "productTypeClass"
         ]
-        for (k, v) in super.getSendablePropertyMappings()! { mappings[k] = v }
+        for (k, v) in super.getSendablePropertyMappings() { mappings[k] = v }
         return mappings
     }
 
@@ -65,7 +65,7 @@ class BitcommerceProduct: BitweaverRestObject {
     
     func getTypeImage() -> BWImage {
         var ret = BWImage.init(named: "NSAdvanced")
-        if let defaultImage = productHash["product_type_icon"] as? String {
+        if let defaultImage = objectHash["product_type_icon"] as? String {
             let imageUrl = URL.init(fileURLWithPath: defaultImage)
             ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent)
         }
