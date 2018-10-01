@@ -27,6 +27,15 @@ class BitweaverLoginViewController: BWViewController {
         }
     }
     
+    @IBAction func register(_ sender: Any) {
+        if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
+            gBitUser.register( emailInput.stringValue, passwordInput.stringValue, handler:self)
+        } else {
+            feedbackLabel.stringValue = "Please enter your email and password used to login to www.prestophoto.com"
+        }
+
+    }
+    
     func authenticationResponse( success:Bool, message:String ) {
         if( success ) {
             dismiss(nil)

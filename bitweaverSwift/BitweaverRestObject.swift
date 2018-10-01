@@ -18,8 +18,8 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var contentTypeGuid:String?           /* Title of the content */
     @objc dynamic var title:String = ""           /* Title of the content */
     @objc dynamic var displayUri:URL!      /* URL of the */
-    @objc dynamic var createdDate = Date()
-    @objc dynamic var lastModifiedDate = Date()
+    @objc dynamic var createdDate:Date?
+    @objc dynamic var lastModifiedDate:Date?
     
     var objectHash: [String:Any] = [:]
 
@@ -104,33 +104,31 @@ class BitweaverRestObject: NSObject {
         let properties = getAllPropertyMappings()
         for (remoteKey,remoteValue) in remoteHash {
             if let propertyName = properties[remoteKey] {
-                do {
-                    if let remoteValueString = remoteValue as? String {
-                        NSLog( "loadRemote %@=>%@ = %@", remoteKey, propertyName, remoteValueString );
-                        if propertyName.hasSuffix("Date") {
-                            setValue(remoteValueString.toDateISO8601(), forKey: propertyName )
-                        } else if propertyName.hasSuffix("Uri") {
-                            let nativeValue = URL.init(string: remoteValueString)
+                if let remoteValueString = remoteValue as? String {
+                    NSLog( "loadRemote %@=>%@ = %@", remoteKey, propertyName, remoteValueString );
+                    if propertyName.hasSuffix("Date") {
+                        setValue(remoteValueString.toDateISO8601(), forKey: propertyName )
+                    } else if propertyName.hasSuffix("Uri") {
+                        let nativeValue = URL.init(string: remoteValueString)
+                        setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
+                        let nativeValue = Int(remoteValueString)
+                        setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Color") {
+                        let nativeValue = BWColor.init(hexString: remoteValueString)
+                        setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Image") {
+                        if let remoteUrl = URL.init(string: remoteValueString) {
+                            let nativeValue = BWImage.init(byReferencing: remoteUrl )
                             setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
-                            let nativeValue = Int(remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Color") {
-                            let nativeValue = BWColor.init(hexString: remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Image") {
-                            if let remoteUrl = URL.init(string: remoteValueString) {
-                                let nativeValue = BWImage.init(byReferencing: remoteUrl )
-                                setValue(nativeValue, forKey: propertyName )
-                            }
-                        } else if remoteValue is Array<Any> {
-                            print( "have dictAtrin" )
-                        } else {
-                            setValue(remoteValueString, forKey: propertyName )
                         }
+                    } else if remoteValue is Array<Any> {
+                        print( "have dictAtrin" )
+                    } else if responds(to: NSSelectorFromString(propertyName)) {
+                            setValue(remoteValueString, forKey: propertyName )
+                    } else {
+                        BitweaverAppBase.log("loadRemote failed: %@ = %@ => %@", remoteKey, remoteValue, propertyName)
                     }
-                } catch {
-                    gBitSystem.log("loadRemote failed: %@ = %@ => %@", remoteKey, remoteValue, propertyName)
                 }
             }
         }
@@ -146,9 +144,11 @@ class BitweaverRestObject: NSObject {
             if let fileURL = localFile {
                 var jsonString = "{"
                 for (key,varName) in getAllPropertyMappings() {
-                    let varValue = value(forKey:varName) as AnyObject?
-                    if !varValue is BWImage {
-                        jsonString += "\""+key+"\"=\""+varValue.description+"\";\n"
+                    if let varValue = value(forKey:varName) as AnyObject? {
+                        if varValue is BWImage {
+                        } else {
+                            jsonString += "\""+key+"\"=\""+varValue.description+"\";\n"
+                        }
                     }
                 }
 /*                for (key,varName) in objectHash as! [String:String] {
