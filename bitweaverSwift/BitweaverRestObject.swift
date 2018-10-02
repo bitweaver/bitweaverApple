@@ -21,6 +21,8 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
     
+    var localId:String
+    
     var objectHash: [String:Any] = [:]
 
     var primaryId:NSNumber? {
@@ -47,6 +49,8 @@ class BitweaverRestObject: NSObject {
     }
 
     override init() {
+        let date = Date()
+        localId = Int(date.timeIntervalSince1970 + 1000.0).description
         super.init()
     }
     
