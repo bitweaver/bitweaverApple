@@ -37,12 +37,14 @@ class BitweaverRestObject: NSObject {
     } }
 
     var jsonFile:URL? { get {
-        return BitweaverAppBase.fileForDataStorage("content.json", "json/"+self.contentTypeGuid+"/"+contentUuid.uuidString)
+        var contentDir = "json/"+self.contentTypeGuid+"/"
+        if primaryId != nil {
+            contentDir += "remote-"+(primaryId?.description)!
+        } else {
+            contentDir += "local-"+contentUuid.uuidString
+        }
+        return BitweaverAppBase.fileForDataStorage("content.json", contentDir )
     } }
-    
-    override init() {
-        super.init()
-    }
     
     func getAllPropertyMappings() -> [String : String] {
         var mappings = [
@@ -61,6 +63,37 @@ class BitweaverRestObject: NSObject {
         return mappings
     }
 
+    func setField(_ propertyName:String,_ stringValue:String ) {
+        if responds(to: NSSelectorFromString(propertyName)) {
+            if propertyName.hasSuffix("Date") {
+                setValue(stringValue.toDateISO8601(), forKey: propertyName )
+            } else if propertyName.hasSuffix("Uri") {
+                let nativeValue = URL.init(string: stringValue)
+                setValue(nativeValue, forKey: propertyName )
+            } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
+                let nativeValue = Int(stringValue)
+                setValue(nativeValue, forKey: propertyName )
+            } else if propertyName.hasSuffix("Uuid") {
+                let nativeValue = UUID.init(uuidString: stringValue)
+                setValue(nativeValue, forKey: propertyName )
+            } else if propertyName.hasSuffix("Color") {
+                let nativeValue = BWColor.init(hexString: stringValue)
+                setValue(nativeValue, forKey: propertyName )
+            } else if propertyName.hasSuffix("Image") {
+                if let remoteUrl = URL.init(string: stringValue) {
+                    let nativeValue = BWImage.init(byReferencing: remoteUrl )
+                    setValue(nativeValue, forKey: propertyName )
+                }
+            } else {
+                setValue(stringValue, forKey: propertyName )
+            }
+//            jsonHash[name] = value
+//            storeToDisk()
+        } else {
+            BitweaverAppBase.log("setField failed: %@ = %@", propertyName, stringValue)
+        }
+    }
+    
     func getField(_ name:String ) -> Any {
         return jsonHash[name] as Any
     }
@@ -105,39 +138,27 @@ class BitweaverRestObject: NSObject {
         let properties = getAllPropertyMappings()
         for (remoteKey,remoteValue) in remoteHash {
             if let propertyName = properties[remoteKey] {
-                if responds(to: NSSelectorFromString(propertyName)) {
-                    if let remoteValueString = remoteValue as? String {
-                        NSLog( "loadRemote %@=>%@ = %@", remoteKey, propertyName, remoteValueString );
-                        if propertyName.hasSuffix("Date") {
-                            setValue(remoteValueString.toDateISO8601(), forKey: propertyName )
-                        } else if propertyName.hasSuffix("Uri") {
-                            let nativeValue = URL.init(string: remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
-                            let nativeValue = Int(remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Uuid") {
-                            let nativeValue = UUID.init(uuidString: remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Color") {
-                            let nativeValue = BWColor.init(hexString: remoteValueString)
-                            setValue(nativeValue, forKey: propertyName )
-                        } else if propertyName.hasSuffix("Image") {
-                            if let remoteUrl = URL.init(string: remoteValueString) {
-                                let nativeValue = BWImage.init(byReferencing: remoteUrl )
-                                setValue(nativeValue, forKey: propertyName )
-                            }
-                        } else if remoteValue is Array<Any> {
-                            print( "have dictAtrin" )
-                        } else {
-                            setValue(remoteValueString, forKey: propertyName )
-                        }
-                    }
-                } else {
-                    BitweaverAppBase.log("loadRemote failed: %@ = %@ => %@", remoteKey, remoteValue, propertyName)
+                NSLog( "loadRemote %@=>%@", remoteKey, propertyName );
+                if let stringValue = remoteValue as? String {
+                    setField(propertyName, stringValue)
                 }
             }
         }
+    }
+    
+    func newObject(_ className:String ) -> BitweaverRestObject? {
+        var classNames:[String] = [className,self.myClassName]
+        classNames.append(self.myClassName)
+        
+        for className in classNames {
+            if let productClass = NSClassFromString(className) as? NSObject.Type {
+                let productObject = productClass.init()
+                if let productObject = productObject as? BitweaverRestObject {
+                    return productObject
+                }
+            }
+        }
+        return nil
     }
     
     func storeToDisk() -> Bool {

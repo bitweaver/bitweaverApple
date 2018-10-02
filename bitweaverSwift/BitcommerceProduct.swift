@@ -78,19 +78,10 @@ class BitcommerceProduct: BitweaverRestObject {
     }
     
     func jsonToProduct(fromJson jsonHash:[String:Any] ) -> BitcommerceProduct? {
-        var classNames:[String] = []
-        if jsonHash["product_type_class"] != nil {
-            classNames.append( jsonHash["product_type_class"] as! String )
-        }
-        classNames.append(self.myClassName)
-        
-        for className in classNames {
-            if let productClass = NSClassFromString(className) as? NSObject.Type {
-                let productObject = productClass.init()
-                if let productObject = productObject as? BitcommerceProduct {
-                    productObject.load(fromJson:jsonHash)
-                    return productObject
-                }
+        if let className = jsonHash["product_type_class"] as? String, let productObject = newObject( className ) {
+            if let productObject = productObject as? BitcommerceProduct {
+                productObject.load(fromJson:jsonHash)
+                return productObject
             }
         }
         return nil
@@ -126,6 +117,9 @@ class BitcommerceProduct: BitweaverRestObject {
                             let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
                             if let jsonHash = jsonResult as? Dictionary<String, String> {
                                 if let newProduct = jsonToProduct(fromJson: jsonHash) {
+                                    if let localUuid = UUID.init(uuidString: dirUuid) {
+                                        newProduct.contentUuid = localUuid
+                                    }
                                     productList[dirUuid] = newProduct
                                     print( "Loaded: " + dirUuid.description)
                                 }
@@ -158,6 +152,7 @@ class BitcommerceProduct: BitweaverRestObject {
                             var productList = Dictionary<String, BitcommerceProduct>()
                             for (_,jsonHash) in jsonList as [String: [String:Any]] {
                                 if let newProduct = self.jsonToProduct(fromJson: jsonHash) {
+                                    newProduct.storeToDisk()
                                     productList[newProduct.contentUuid.uuidString] = newProduct
                                 }
                             }
