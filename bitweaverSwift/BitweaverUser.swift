@@ -35,7 +35,6 @@ class BitweaverUser: BitweaverRestObject {
     @objc dynamic var firstName = ""
     @objc dynamic var lastName = ""
 
-    
     var displayName:String {
         get {
             if isAuthenticated() {
@@ -50,11 +49,12 @@ class BitweaverUser: BitweaverRestObject {
     
     var products = Dictionary<String, BitcommerceProduct>()
 
+    // Prevent multiple
     static let active = BitweaverUser()
     
-    // Prevent multiple
-    override private init(){
+    override init(){
         super.init()
+        contentTypeGuid = "bituser"
     }
 
     override var primaryId:NSNumber? {
@@ -191,7 +191,7 @@ class BitweaverUser: BitweaverRestObject {
                         }
 
                         if let properties = response.result.value as? [String:Any] {
-                            self.load(fromRemoteProperties:properties)
+                            self.load(fromJson:properties)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
                         }
@@ -231,11 +231,9 @@ class BitweaverUser: BitweaverRestObject {
         NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }
 
-    override func load(fromRemoteProperties remoteHash: [String:Any]) {
-        super.load(fromRemoteProperties: remoteHash)
+    override func load(fromJson remoteHash: [String:Any]) {
+        super.load(fromJson: remoteHash)
         if userId != nil && userId!.intValue > 0 {
-            if storeToDisk() {
-            }
             NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
         }
     }

@@ -20,9 +20,14 @@ class BitcommerceProduct: BitweaverRestObject {
     var enabled: [Bool] = []
     var images: [String:String] = [:]
 
-    convenience init(fromHash hash: [String:Any]) {
+    override init(){
+        super.init()
+        contentTypeGuid = "bitproduct"
+    }
+    
+    convenience init(fromJson hash: [String:Any]) {
         self.init()
-        load(fromRemoteProperties: hash)
+        load(fromJson: hash)
     }
 
     override func getAllPropertyMappings() -> [String : String] {
@@ -37,8 +42,8 @@ class BitcommerceProduct: BitweaverRestObject {
         return mappings
     }
 
-    override func load(fromRemoteProperties remoteHash: [String:Any]) {
-        super.load(fromRemoteProperties: remoteHash)
+    override func load(fromJson remoteHash: [String:Any]) {
+        super.load(fromJson: remoteHash)
     }
     
     override func getSendablePropertyMappings() -> [String : String] {
@@ -65,58 +70,107 @@ class BitcommerceProduct: BitweaverRestObject {
     
     func getTypeImage() -> BWImage {
         var ret = BWImage.init(named: "NSAdvanced")
-        if let defaultImage = objectHash["product_type_icon"] as? String {
+        if let defaultImage = jsonHash["product_type_icon"] {
             let imageUrl = URL.init(fileURLWithPath: defaultImage)
             ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent)
         }
         return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
-    func jsonToProducts(withHash jsonList: [String: [String:Any]] ) -> Dictionary<String, BitcommerceProduct> {
-        var productList = Dictionary<String, BitcommerceProduct>()
-        for (productId,hash) in jsonList as [String: [String:Any]] {
-            var classNames:[String] = []
-            if hash["product_type_class"] != nil {
-                classNames.append( hash["product_type_class"] as! String )
-            }
-            classNames.append(self.myClassName)
-
-            for className in classNames {
-                if let productClass = NSClassFromString(className) as? NSObject.Type {
-                    let productObject = productClass.init()
-                    if productObject is BitcommerceProduct {
-                        productList[productId] = productObject as? BitcommerceProduct
-                        productList[productId]?.load(fromRemoteProperties:hash)
-                        break
-                    }
+    func jsonToProduct(fromJson jsonHash:[String:Any] ) -> BitcommerceProduct? {
+        var classNames:[String] = []
+        if jsonHash["product_type_class"] != nil {
+            classNames.append( jsonHash["product_type_class"] as! String )
+        }
+        classNames.append(self.myClassName)
+        
+        for className in classNames {
+            if let productClass = NSClassFromString(className) as? NSObject.Type {
+                let productObject = productClass.init()
+                if let productObject = productObject as? BitcommerceProduct {
+                    productObject.load(fromJson:jsonHash)
+                    return productObject
                 }
             }
         }
-        return productList
+        return nil
     }
     
     func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
-        let headers = gBitSystem.httpHeaders()
-        Alamofire.request(gBitSystem.apiBaseUri+"products/list",
-                          method: .get,
-                          parameters: nil,
-                          encoding: URLEncoding.default,
-                          headers:headers)
-            .validate()
-            .responseJSON { response in
-                switch response.result {
-                case .success :
-                    if let jsonList = response.result.value as? [String: [String:Any]] {
-                        let productList = self.jsonToProducts(withHash: jsonList)
-                        completion( productList )
+        loadLocal( completion:completion )
+        loadRemote( completion:completion )
+    }
+    
+    func loadLocal( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
+        var productList:Dictionary<String, BitcommerceProduct> = [:]
+        
+        if jsonDir != nil {
+        
+            let fileManager = FileManager.default
+            let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
+            let enumerator = FileManager.default.enumerator(at: jsonDir!, includingPropertiesForKeys: resourceKeys,
+                                                            options: [.skipsHiddenFiles,.skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
+                                                                print("directoryEnumerator error at \(url): ", error)
+                                                                return true
+            })!
+            
+            for case let fileURL as URL in enumerator {
+                do {
+                    let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
+                    if resourceValues.isDirectory! {
+                        let dirUuid = fileURL.lastPathComponent
+                        let jsonUrl = fileURL.appendingPathComponent("content.json")
+                        print( jsonUrl )
+                        if fileManager.fileExists(atPath: jsonUrl.path) {
+                            let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
+                            let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+                            if let jsonHash = jsonResult as? Dictionary<String, String> {
+                                if let newProduct = jsonToProduct(fromJson: jsonHash) {
+                                    productList[dirUuid] = newProduct
+                                    print( "Loaded: " + dirUuid.description)
+                                }
+                            }
+                        }
                     }
-                    // Send a notification event user has just logged in.
-                    NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
-                case .failure :
-                    //let errorMessage = gBitSystem.httpError( response:response, request:response.request )
-                    //gBitSystem.log( errorMessage )
-                    completion( [:] )
+                } catch {
+                    print(error)
                 }
+            }
+            completion( productList )
+            // Send a notification event user has just logged in.
+            NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
+        }
+    }
+    
+    func loadRemote( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
+        if BitweaverUser.active.isAuthenticated() {
+            let headers = gBitSystem.httpHeaders()
+            Alamofire.request(gBitSystem.apiBaseUri+"products/list",
+                              method: .get,
+                              parameters: nil,
+                              encoding: URLEncoding.default,
+                              headers:headers)
+                .validate()
+                .responseJSON { response in
+                    switch response.result {
+                    case .success :
+                        if let jsonList = response.result.value as? [String: [String:Any]] {
+                            var productList = Dictionary<String, BitcommerceProduct>()
+                            for (_,jsonHash) in jsonList as [String: [String:Any]] {
+                                if let newProduct = self.jsonToProduct(fromJson: jsonHash) {
+                                    productList[newProduct.contentUuid.uuidString] = newProduct
+                                }
+                            }
+                            completion( productList )
+                        }
+                        // Send a notification event user has just logged in.
+                        NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
+                    case .failure :
+                        //let errorMessage = gBitSystem.httpError( response:response, request:response.request )
+                        //gBitSystem.log( errorMessage )
+                        completion( [:] )
+                    }
+            }
         }
     }
 }

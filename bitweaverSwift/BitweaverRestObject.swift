@@ -12,40 +12,34 @@ import Foundation
 @objc(BitweaverRestObject)
 class BitweaverRestObject: NSObject {
     // REST Mappable properties
-    @objc dynamic var uuId:String = ""            /* Universal Unique ID for content, created by your app */
+    var contentUuid:UUID = UUID()            /* Universal Unique ID for content, created by your app */
     @objc dynamic var contentId: NSNumber?    /* Content ID created by remote system */
     @objc dynamic var userId: NSNumber?       /* User ID on the remote system that created the content */
-    @objc dynamic var contentTypeGuid:String?           /* Title of the content */
+    @objc dynamic var contentTypeGuid:String = ""           /* Title of the content */
     @objc dynamic var title:String = ""           /* Title of the content */
     @objc dynamic var displayUri:URL!      /* URL of the */
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
     
-    var objectHash: [String:Any] = [:]
+    var jsonHash: [String:String] = [:]
 
     var primaryId:NSNumber? {
         get {
             return contentId
         }
     }
-    var storageKey:String? {
-        get {
-            if contentTypeGuid != nil && primaryId != nil {
-                return contentTypeGuid! + "-" + (primaryId?.description)!
-            }
-            return nil
-        }
-    }
+    
+    var isRemote:Bool { get { return primaryId != nil } }
+    var isLocal:Bool { get { return primaryId == nil } }
 
-    var localFile:URL? {
-        get {
-            if storageKey != nil {
-                return BitweaverAppBase.fileForDataStorage(storageKey!+".json", "json")
-            }
-            return nil
-        }
-    }
+    var jsonDir:URL? { get {
+        return BitweaverAppBase.dirForDataStorage( "json/"+contentTypeGuid+"/" )
+    } }
 
+    var jsonFile:URL? { get {
+        return BitweaverAppBase.fileForDataStorage("content.json", "json/"+self.contentTypeGuid+"/"+contentUuid.uuidString)
+    } }
+    
     override init() {
         super.init()
     }
@@ -57,7 +51,7 @@ class BitweaverRestObject: NSObject {
             "user_id" : "userId",
             "date_created" : "createdDate",
             "date_last_modified" : "lastModifiedDate",
-            "uuid" : "uuId",
+//            "uuid" : "contentUuid",
             "display_uri" : "displayUri"
         ]
         let sendableProperties = getSendablePropertyMappings()
@@ -68,7 +62,7 @@ class BitweaverRestObject: NSObject {
     }
 
     func getField(_ name:String ) -> Any {
-        return objectHash[name] as Any
+        return jsonHash[name] as Any
     }
     
     func getSendablePropertyMappings() -> [String : String] {
@@ -98,9 +92,16 @@ class BitweaverRestObject: NSObject {
         }
         return ret
     }
-    
-    func load(fromRemoteProperties remoteHash: [String:Any]) {
-        objectHash = remoteHash
+
+    func load(fromJson remoteHash: [String:Any]) {
+        jsonHash.removeAll()
+        for (key,value) in remoteHash {
+            if value is String {
+                jsonHash[key] = value as? String
+            } else if let valueObject = value as AnyObject? {
+                jsonHash[key] = valueObject.description
+            }
+        }
         let properties = getAllPropertyMappings()
         for (remoteKey,remoteValue) in remoteHash {
             if let propertyName = properties[remoteKey] {
@@ -114,6 +115,9 @@ class BitweaverRestObject: NSObject {
                             setValue(nativeValue, forKey: propertyName )
                         } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count")  {
                             let nativeValue = Int(remoteValueString)
+                            setValue(nativeValue, forKey: propertyName )
+                        } else if propertyName.hasSuffix("Uuid") {
+                            let nativeValue = UUID.init(uuidString: remoteValueString)
                             setValue(nativeValue, forKey: propertyName )
                         } else if propertyName.hasSuffix("Color") {
                             let nativeValue = BWColor.init(hexString: remoteValueString)
@@ -134,33 +138,32 @@ class BitweaverRestObject: NSObject {
                 }
             }
         }
-        if storeToDisk() {
-            
-        }
     }
     
     func storeToDisk() -> Bool {
         var ret = false
 
         do {
-            if let fileURL = localFile {
-                var jsonString = "{"
-                for (key,varName) in getAllPropertyMappings() {
-                    if let varValue = value(forKey:varName) as AnyObject? {
-                        if varValue is BWImage {
-                        } else {
-                            jsonString += "\""+key+"\"=\""+varValue.description+"\";\n"
+            if let fileURL = jsonFile {
+                var jsonStore = jsonHash
+                for (key,propName) in getAllPropertyMappings() {
+                    if let propValue = value(forKey:propName) as AnyObject? {
+                        if propValue is NSNumber || propValue is String {
+                            jsonStore[key] = propValue.description
+                        } else if propValue is String {
+                            jsonStore[key] = propValue as? String
                         }
                     }
                 }
-/*                for (key,varName) in objectHash as! [String:String] {
-                    if let varValue = value(forKey:varName) as AnyObject? {
-                        jsonString += "\""+key+"\"=\""+varValue.description+"\";\n"
-                    }
+                    
+                var jsonString = "{"
+                for (key,value) in jsonStore {
+                    jsonString += "\""+key+"\":\""+value+"\",\n"
                 }
- */
                 jsonString += "}"
+                
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
+                print( fileURL.description )
             }
             ret = true
         } catch {/* error handling here */}
