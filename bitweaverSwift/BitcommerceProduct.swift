@@ -58,8 +58,16 @@ class BitcommerceProduct: BitweaverRestObject {
         return productId != nil
     }
 
-    func getViewController() -> BWViewController {
-        let controllerClass:String = self.productTypeClass+"ViewController";
+    func getEditViewController() -> BWViewController {
+        return getViewController("Edit")
+    }
+
+    func getPreviewViewController() -> BWViewController {
+        return getViewController("Preview")
+    }
+    
+    private func getViewController(_ type:String) -> BWViewController {
+        let controllerClass:String = self.productTypeClass+type+"ViewController";
         print(controllerClass)
         if let ret: BWViewController.Type = NSClassFromString( Bundle.main.infoDictionary!["CFBundleName"] as! String + "." + controllerClass ) as? BWViewController.Type {
             return ret.init()
