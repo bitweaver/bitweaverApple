@@ -136,7 +136,7 @@ class BitweaverUser: BitweaverRestObject {
 
                 if let statusCode = response.response?.statusCode {
                     switch statusCode {
-                        case 200 ... 399: print("Success")
+                        case 200 ... 399:
                             ret = true
                             self.authenticate(authLogin: authLogin, authPassword: authPassword, handler: handler)
                         case 400 ... 499:
@@ -146,7 +146,7 @@ class BitweaverUser: BitweaverRestObject {
                             
                             errorMessage = "Registration failed. \n"+gBitSystem.httpError( response:response, request:response.request )
                         default:
-                            return
+                            errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
                     }
                 }
                 handler.authenticationResponse(success: ret, message: errorMessage )
@@ -167,13 +167,14 @@ class BitweaverUser: BitweaverRestObject {
                           headers:headers)
             .validate(statusCode: 200..<500)
             .responseJSON { response in
-
+                
                 var ret = false
                 var errorMessage: String = ""
                 
-                switch response.result {
-                    case .success :
-                        
+                if let statusCode = response.response?.statusCode {
+                    switch statusCode {
+                    case 200 ... 399:
+
                         // cache login credentials
                         gBitSystem.authLogin = authLogin
                         gBitSystem.authPassword = authPassword
@@ -197,7 +198,7 @@ class BitweaverUser: BitweaverRestObject {
                         }
                         ret = true
                         
-                    case .failure :
+                    case 400 ... 499:
                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                             print("Data: \(utf8Text)")
                         }
@@ -205,9 +206,12 @@ class BitweaverUser: BitweaverRestObject {
                         // errorMessage = gBitSystem.httpError( response:response, request:response.request! )!
                         errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
                         //gBitSystem.authenticationFailure(with: request, response: response, error: response.error, json: response.result.value)
+                    default:
+                        errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
                     }
                     handler.authenticationResponse(success: ret, message: errorMessage )
                 }
+        }
     }
 
     func logout( completion: @escaping ()->Void ) {

@@ -10,6 +10,7 @@ import Cocoa
 
 // App wide alias for iOS and macOS cross platform convenience
 typealias BWImage = NSImage
+typealias BWView = NSView
 typealias BWViewController = NSViewController
 typealias BWColor = NSColor
 
@@ -28,6 +29,28 @@ extension String {
         return RFC3339DateFormatter.date(from: self)
     }
 }
+
+
+extension BWViewController {
+    func clearChildren() {
+        self.children.forEach({
+            $0.view.removeFromSuperview()
+            $0.removeFromParent()
+        })
+    }
+}
+
+extension BWView {
+    func clearChildren() {
+        self.subviews.forEach({
+            $0.removeFromSuperview()
+        })
+    }
+}
+
+
+
+
 
 extension BWImage {
     var cgImage: CGImage? {
