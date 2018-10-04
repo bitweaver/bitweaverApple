@@ -32,16 +32,26 @@ class BitweaverRestObject: NSObject {
     var isRemote:Bool { get { return primaryId != nil } }
     var isLocal:Bool { get { return primaryId == nil } }
 
+    var pathBase:String { get {
+       var pathBase = ""
+        if gBitUser.isAuthenticated() {
+            pathBase += "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"
+        } else {
+            pathBase += "local/"
+        }
+        return pathBase+contentTypeGuid+"/"
+    } }
+    
     var jsonDir:URL? { get {
-        return BitweaverAppBase.dirForDataStorage( "json/"+contentTypeGuid+"/" )
+        return BitweaverAppBase.dirForDataStorage( pathBase )
     } }
 
     var jsonFile:URL? { get {
-        var contentDir = "json/"+self.contentTypeGuid+"/"
+        var contentDir = pathBase
         if primaryId != nil {
-            contentDir += "remote-"+(primaryId?.description)!
+            contentDir += (primaryId?.description)!
         } else {
-            contentDir += "local-"+contentUuid.uuidString
+            contentDir += contentUuid.uuidString
         }
         return BitweaverAppBase.fileForDataStorage("content.json", contentDir )
     } }
@@ -161,7 +171,7 @@ class BitweaverRestObject: NSObject {
         return nil
     }
     
-    func storeToDisk() -> Bool {
+    func storeToDisk() {
         var ret = false
 
         do {
@@ -189,7 +199,7 @@ class BitweaverRestObject: NSObject {
             ret = true
         } catch {/* error handling here */}
 
-        return ret
+//        return ret
     }
 
 }
