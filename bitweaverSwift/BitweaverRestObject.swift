@@ -12,20 +12,20 @@ import Foundation
 @objc(BitweaverRestObject)
 class BitweaverRestObject: NSObject {
     // REST Mappable properties
-    var contentUuid:UUID = UUID()            /* Universal Unique ID for content, created by your app */
-    @objc dynamic var contentId: NSNumber?    /* Content ID created by remote system */
-    @objc dynamic var userId: NSNumber?       /* User ID on the remote system that created the content */
-    @objc dynamic var contentTypeGuid:String = ""           /* Title of the content */
-    @objc dynamic var title:String = ""           /* Title of the content */
-    @objc dynamic var displayUri:URL!      /* URL of the */
+    @objc dynamic var contentUuid:UUID = UUID()     /* Universal Unique ID for content, created by your app */
+    @objc dynamic var contentId: NSNumber?          /* Content ID created by remote system */
+    @objc dynamic var userId: NSNumber?             /* User ID on the remote system that created the content */
+    @objc dynamic var contentTypeGuid:String = ""   /* Title of the content */
+    @objc dynamic var title:String = ""             /* Title of the content */
+    @objc dynamic var displayUri:URL!               /* URL of the */
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
     
     var jsonHash: [String:String] = [:]
 
-    var primaryId:NSNumber? {
+    var primaryId:String? {
         get {
-            return contentId
+            return contentId != nil ? contentId?.stringValue : contentUuid.uuidString
         }
     }
     
@@ -63,7 +63,7 @@ class BitweaverRestObject: NSObject {
             "user_id" : "userId",
             "date_created" : "createdDate",
             "date_last_modified" : "lastModifiedDate",
-//            "uuid" : "contentUuid",
+            "uuid" : "contentUuid",
             "display_uri" : "displayUri"
         ]
         let sendableProperties = getSendablePropertyMappings()
@@ -164,6 +164,8 @@ class BitweaverRestObject: NSObject {
             if let productClass = NSClassFromString(className) as? NSObject.Type {
                 let productObject = productClass.init()
                 if let productObject = productObject as? BitweaverRestObject {
+                    productObject.createdDate = Date()
+                    productObject.lastModifiedDate = Date()
                     return productObject
                 }
             }
@@ -171,35 +173,52 @@ class BitweaverRestObject: NSObject {
         return nil
     }
     
-    func storeToDisk() {
-        var ret = false
-
-        do {
-            if let fileURL = jsonFile {
-                var jsonStore = jsonHash
-                for (key,propName) in getAllPropertyMappings() {
-                    if let propValue = value(forKey:propName) as AnyObject? {
-                        if propValue is NSNumber || propValue is String {
-                            jsonStore[key] = propValue.description
-                        } else if propValue is String {
-                            jsonStore[key] = propValue as? String
-                        }
+    func exportToJson() -> String {
+        var jsonStore = jsonHash
+        for (key,propName) in getAllPropertyMappings() {
+            if let propValue = value(forKey:propName) as AnyObject? {
+                if let nativeValue = propValue as? UUID {
+                    jsonStore[key] = nativeValue.uuidString
+                } else if let nativeValue = propValue as? URL {
+                    jsonStore[key] = nativeValue.absoluteString
+                } else if let nativeValue = propValue as? Date {
+                    jsonStore[key] = nativeValue.toStringISO8601()
+                } else if let nativeValue = propValue as? BWColor {
+                    jsonStore[key] = nativeValue.toHexString()
+                } else if let nativeValue = propValue as? NSNumber {
+                    if nativeValue.floatValue != 0 {
+                        jsonStore[key] = nativeValue.description
                     }
+                } else if let nativeValue = propValue as? String {
+                    if nativeValue.count > 0 {
+                        jsonStore[key] = nativeValue
+                    }
+                } else {
+                    print( "unknown storeToDisk: ", propName )
                 }
-                    
-                var jsonString = "{"
-                for (key,value) in jsonStore {
-                    jsonString += "\""+key+"\":\""+value+"\",\n"
-                }
-                jsonString += "}"
-                
+            }
+        }
+        
+        var jsonString = "{"
+        for (key,value) in jsonStore {
+            jsonString += "\""+key+"\":\""+value+"\",\n"
+        }
+        jsonString += "}"
+        
+        return jsonString
+    }
+    
+    func storeToDisk() {
+        if let fileURL = jsonFile {
+            let jsonString = exportToJson()
+            do {
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
                 print( fileURL.description )
+            } catch {
+                /* error handling here */
+                print("Failed do save JSON to ", fileURL)
             }
-            ret = true
-        } catch {/* error handling here */}
-
-//        return ret
+        }
     }
 
 }

@@ -14,13 +14,14 @@ class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
     @objc dynamic var productTypeName: String?
-    @objc dynamic var productTypeClass: String = ""
+    @objc dynamic var productTypeClass: String
     @objc dynamic var productModel: String = ""
     @objc dynamic var productDefaultIcon: String = ""
     var enabled: [Bool] = []
     var images: [String:String] = [:]
 
-    override init(){
+    override init() {
+        productTypeClass = NSStringFromClass(type(of:self))
         super.init()
         contentTypeGuid = "bitproduct"
     }
@@ -101,47 +102,46 @@ class BitcommerceProduct: BitweaverRestObject {
     }
     
     func loadLocal( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
+        guard jsonDir != nil else {return}
+    
+        let fileManager = FileManager.default
+        let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
+        let enumerator = FileManager.default.enumerator(at: jsonDir!, includingPropertiesForKeys: resourceKeys,
+                                                        options: [.skipsHiddenFiles,.skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
+                                                            print("directoryEnumerator error at \(url): ", error)
+                                                            return true
+        })!
+        
         var productList:Dictionary<String, BitcommerceProduct> = [:]
         
-        if jsonDir != nil {
-        
-            let fileManager = FileManager.default
-            let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
-            let enumerator = FileManager.default.enumerator(at: jsonDir!, includingPropertiesForKeys: resourceKeys,
-                                                            options: [.skipsHiddenFiles,.skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
-                                                                print("directoryEnumerator error at \(url): ", error)
-                                                                return true
-            })!
-            
-            for case let fileURL as URL in enumerator {
-                do {
-                    let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
-                    if resourceValues.isDirectory! {
-                        let dirUuid = fileURL.lastPathComponent
-                        let jsonUrl = fileURL.appendingPathComponent("content.json")
-                        print( jsonUrl )
-                        if fileManager.fileExists(atPath: jsonUrl.path) {
-                            let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
-                            let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                            if let jsonHash = jsonResult as? Dictionary<String, String> {
-                                if let newProduct = jsonToProduct(fromJson: jsonHash) {
-                                    if let localUuid = UUID.init(uuidString: dirUuid) {
-                                        newProduct.contentUuid = localUuid
-                                    }
-                                    productList[dirUuid] = newProduct
-                                    print( "Loaded: " + dirUuid.description)
+        for case let fileURL as URL in enumerator {
+            do {
+                let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
+                if resourceValues.isDirectory! {
+                    let dirUuid = fileURL.lastPathComponent
+                    let jsonUrl = fileURL.appendingPathComponent("content.json")
+                    print( jsonUrl )
+                    if fileManager.fileExists(atPath: jsonUrl.path) {
+                        let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
+                        let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+                        if let jsonHash = jsonResult as? Dictionary<String, String> {
+                            if let newProduct = jsonToProduct(fromJson: jsonHash) {
+                                if let localUuid = UUID.init(uuidString: dirUuid) {
+                                    newProduct.contentUuid = localUuid
                                 }
+                                productList[dirUuid] = newProduct
+                                print( "Loaded: " + dirUuid.description)
                             }
                         }
                     }
-                } catch {
-                    print(error)
                 }
+            } catch {
+                print(error)
             }
-            completion( productList )
-            // Send a notification event user has just logged in.
-            NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
         }
+        completion( productList )
+        // Send a notification event user has just logged in.
+        NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
     }
     
     func loadRemote( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {

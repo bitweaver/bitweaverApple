@@ -57,9 +57,9 @@ class BitweaverUser: BitweaverRestObject {
         contentTypeGuid = "bituser"
     }
 
-    override var primaryId:NSNumber? {
+    override var primaryId:String? {
         get {
-            return userId
+            return userId?.stringValue
         }
     }
     
