@@ -31,6 +31,10 @@ class BitcommerceProduct: BitweaverRestObject {
         load(fromJson: hash)
     }
 
+    override func remoteUrl() -> String {
+       return gBitSystem.apiBaseUri+"products/"+(self.productId?.stringValue ?? "new");
+    }
+    
     override func getAllPropertyMappings() -> [String : String] {
         var mappings = [
             "product_id" : "productId",
@@ -102,11 +106,11 @@ class BitcommerceProduct: BitweaverRestObject {
     }
     
     func loadLocal( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
-        guard jsonDir != nil else {return}
+        guard localUrl != nil else {return}
     
         let fileManager = FileManager.default
         let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
-        let enumerator = FileManager.default.enumerator(at: jsonDir!, includingPropertiesForKeys: resourceKeys,
+        let enumerator = FileManager.default.enumerator(at: localUrl!, includingPropertiesForKeys: resourceKeys,
                                                         options: [.skipsHiddenFiles,.skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
                                                             print("directoryEnumerator error at \(url): ", error)
                                                             return true
@@ -160,7 +164,7 @@ class BitcommerceProduct: BitweaverRestObject {
                             var productList = Dictionary<String, BitcommerceProduct>()
                             for (_,jsonHash) in jsonList as [String: [String:Any]] {
                                 if let newProduct = self.jsonToProduct(fromJson: jsonHash) {
-                                    newProduct.storeToDisk()
+                                    newProduct.cacheLocal()
                                     productList[newProduct.contentUuid.uuidString] = newProduct
                                 }
                             }

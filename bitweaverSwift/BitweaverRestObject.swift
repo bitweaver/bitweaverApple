@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import Alamofire
 
 @objc(BitweaverRestObject)
 class BitweaverRestObject: NSObject {
@@ -20,7 +21,11 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var displayUri:URL!               /* URL of the */
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
-    
+
+    var isUploading = false
+    var uploadPercentage: Float = 0.0
+    var uploadMessage = ""
+
     var jsonHash: [String:String] = [:]
 
     var primaryId:String? {
@@ -29,10 +34,26 @@ class BitweaverRestObject: NSObject {
         }
     }
     
+    func remoteUrl() -> String {
+        return gBitSystem.apiBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString);
+    }
+    func startUpload() {
+        uploadPercentage = 0.01
+        isUploading = true
+        NotificationCenter.default.post(name: NSNotification.Name("UploadingStart"), object: self)
+    }
+    
+    func cancelUpload() {
+        uploadPercentage = 0.0
+        isUploading = false
+        NotificationCenter.default.post(name: NSNotification.Name("UploadingCancel"), object: self)
+    }
+    
+
     var isRemote:Bool { get { return primaryId != nil } }
     var isLocal:Bool { get { return primaryId == nil } }
 
-    var pathBase:String { get {
+    var localPathBase:String { get {
        var pathBase = ""
         if gBitUser.isAuthenticated() {
             pathBase += "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"
@@ -42,12 +63,12 @@ class BitweaverRestObject: NSObject {
         return pathBase+contentTypeGuid+"/"
     } }
     
-    var jsonDir:URL? { get {
-        return BitweaverAppBase.dirForDataStorage( pathBase )
+    var localUrl:URL? { get {
+        return BitweaverAppBase.dirForDataStorage( localPathBase )
     } }
 
     var jsonFile:URL? { get {
-        var contentDir = pathBase
+        var contentDir = localPathBase
         if primaryId != nil {
             contentDir += (primaryId?.description)!
         } else {
@@ -98,7 +119,7 @@ class BitweaverRestObject: NSObject {
                 setValue(stringValue, forKey: propertyName )
             }
 //            jsonHash[name] = value
-//            storeToDisk()
+//            storeLocal()
         } else {
             BitweaverAppBase.log("setField failed: %@ = %@", propertyName, stringValue)
         }
@@ -172,8 +193,8 @@ class BitweaverRestObject: NSObject {
         }
         return nil
     }
-    
-    func exportToJson() -> String {
+
+    func exportToHash() -> [String:String] {
         var jsonStore = jsonHash
         for (key,propName) in getAllPropertyMappings() {
             if let propValue = value(forKey:propName) as AnyObject? {
@@ -194,11 +215,15 @@ class BitweaverRestObject: NSObject {
                         jsonStore[key] = nativeValue
                     }
                 } else {
-                    print( "unknown storeToDisk: ", propName )
+                    print( "unknown storeLocal: ", propName )
                 }
             }
         }
-        
+        return jsonStore
+    }
+
+    func exportToJson() -> String {
+        let jsonStore = self.exportToHash()
         var jsonString = "{"
         for (key,value) in jsonStore {
             jsonString += "\""+key+"\":\""+value+"\",\n"
@@ -208,7 +233,122 @@ class BitweaverRestObject: NSObject {
         return jsonString
     }
     
-    func storeToDisk() {
+    func store(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
+        if isRemote {
+            storeRemote(completion: completion)
+        } else {
+            storeLocal()
+        }
+    }
+    
+    private func storeRemote(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
+        if !isUploading {
+            startUpload()
+            
+            NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+            
+            let exportHash = exportToHash()
+            let headers = gBitSystem.httpHeaders()
+            
+            Alamofire.upload(
+                multipartFormData: { multipartFormData in
+                    for (key,value) in exportHash {
+                        multipartFormData.append(value.data(using: .utf8)!, withName: key)
+                    }
+//                  if let imageData = frontCoverImage?.toDataJPG() {
+//                      multipartFormData.appendBodyPart(data: imageData, name: "front_cover", fileName: "front_cover_upload.jpg", mimeType: "image/jpeg")
+//                  }
+//                  multipartFormData.append(unicornImageURL, withName: "unicorn")
+//                  multipartFormData.append(rainbowImageURL, withName: "rainbow")
+                },
+                usingThreshold:UInt64.init(),
+                to:remoteUrl(),
+                method:.put,
+                headers:headers,
+                encodingCompletion: { encodingResult in
+                    var ret = false
+                    var errorMessage = ""
+                    switch encodingResult {
+                        case .success(let upload, _, _):
+                            upload.responseJSON { response in
+                                if let statusCode = response.response?.statusCode {
+                                    switch statusCode {
+                                    case 200 ... 399:
+                                        if let jsonHash = response.result.value as? [String:Any] {
+                                            self.load(fromJson: jsonHash)
+                                            ret = true
+                                        } else {
+                                            errorMessage = "JSON Format Error"
+                                        }
+                                    case 400 ... 499:
+                                        if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
+                                            print("Data: \(utf8Text)")
+                                        }
+                                        
+                                        errorMessage = gBitSystem.httpError( response:response, request:response.request )
+                                    default:
+                                        errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
+                                    }
+                                }
+                                completion(self,ret,errorMessage)
+                            }
+                        case .failure(let encodingError):
+                            errorMessage = encodingError.localizedDescription
+                            completion(self,ret,errorMessage)
+                    }
+                }
+            )
+            
+            /* SWIFTCONVERT
+             var putRequest: NSMutableURLRequest? = gBitweaverHTTPClient.multipartFormRequest(withMethod: "POST", path: restUrlPath, parameters: parameters, constructingBodyWith: { formData in
+             if( frontCover != nil ) {
+             [formData appendPartWithFileData:UIImageJPEGRepresentation(frontCover, 0.85) name:@"front_cover_file" fileName:@"ratio11-cover-front" mimeType:@"image/jpeg"];
+             }
+             
+             if( backCover != nil ) {
+             [formData appendPartWithFileData:UIImageJPEGRepresentation(backCover, 0.85) name:@"back_cover_file" fileName:@"back-cover" mimeType:@"image/jpeg"];
+             }
+             
+             let data = NSData(contentsOfFile: Bundle.main.path(forResource: "\(self.ratio)-text-block", ofType: "pdf") ?? "") as Data?
+             formData?.appendPart(withFileData: data, name: "pdf_text", fileName: "\(self.ratio)-text-block.pdf", mimeType: "application/pdf")
+             })
+             
+             gBitweaverHTTPClient.prepareRequestHeaders(putRequest)
+             
+             restOperation = AFJSONRequestOperation(request: putRequest! as URLRequest,
+             success: { request, response, JSON in
+             self.load(fromRemoteProperties: JSON as! [String : String])
+             self.uploadPercentage = 100.0
+             self.uploadMessage = "Upload complete!"
+             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+             }, failure: { request, response, error, JSON in
+             let errorMessage = gBitweaverHTTPClient.errorMessage(withResponse: response!, urlRequest: request, json: JSON as! [String:Any] )
+             self.uploadMessage = "Upload failed: "+errorMessage!
+             self.uploadPercentage = 100.0
+             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+             })
+             
+             restOperation?.setUploadProgressBlock = { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+             self.uploadPercentage = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) + 0.01 // make sure we don't have zero
+             self.uploadMessage = "Uploading..."
+             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+             }
+             
+             uploadMessage = "Preparing upload."
+             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+             if let anOperation = restOperation {
+             OperationQueue().addOperation(anOperation)
+             }
+             */
+        }
+    }
+    
+    // access method to save local copy of remote object
+    func cacheLocal() {
+        storeLocal()
+    }
+    
+    private func storeLocal() {
         if let fileURL = jsonFile {
             let jsonString = exportToJson()
             do {
