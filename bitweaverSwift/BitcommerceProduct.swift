@@ -118,13 +118,17 @@ class BitcommerceProduct: BitweaverRestObject {
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                        if let jsonHash = jsonResult as? Dictionary<String, String> {
-                            if let className = jsonHash["product_type_class"], let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct  {
-                                if let localUuid = UUID.init(uuidString: dirUuid) {
-                                    newProduct.contentUuid = localUuid
+                        if let jsonHash = jsonResult as? Dictionary<String, String>, let productClass = jsonHash["product_type_class"] {
+                            let classNames = [productClass,String(describing: self)]
+                            for className in classNames {
+                                if let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct {
+                                    if let localUuid = UUID.init(uuidString: dirUuid) {
+                                        newProduct.contentUuid = localUuid
+                                    }
+                                    productList[dirUuid] = newProduct
+                                    print( "Loaded: " + dirUuid.description)
+                                    break
                                 }
-                                productList[dirUuid] = newProduct
-                                print( "Loaded: " + dirUuid.description)
                             }
                         }
                     }
@@ -153,9 +157,15 @@ class BitcommerceProduct: BitweaverRestObject {
                         if let jsonList = response.result.value as? [String: [String:Any]] {
                             var productList = Dictionary<String, BitcommerceProduct>()
                             for (_,jsonHash) in jsonList as [String: [String:Any]] {
-                                if let className = jsonHash["product_type_class"] as? String, let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct  {
-                                    newProduct.cacheLocal()
-                                    productList[newProduct.contentUuid.uuidString] = newProduct
+                                if let productClass = jsonHash["product_type_class"] as? String {
+                                    let classNames = [productClass,String(describing: self)]
+                                    for className in classNames {
+                                        if let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct  {
+                                            newProduct.cacheLocal()
+                                            productList[newProduct.contentUuid.uuidString] = newProduct
+                                        }
+                                        break
+                                    }
                                 }
                             }
                             completion( productList )
