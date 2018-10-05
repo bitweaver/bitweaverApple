@@ -146,7 +146,7 @@ class BitweaverAppBase: NSObject {
         
         var stringArgs:[CVarArg] = [];
         for arg in args {
-            stringArgs.append(arg as! CVarArg)
+            stringArgs.append(String(describing: arg))
         }
         
         let logString = "\(timestamp) \(pname)[\(pid):\(tid)] " + String(format: format, arguments: stringArgs)

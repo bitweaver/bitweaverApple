@@ -90,16 +90,6 @@ class BitcommerceProduct: BitweaverRestObject {
         return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
-    func jsonToProduct(fromJson jsonHash:[String:Any] ) -> BitcommerceProduct? {
-        if let className = jsonHash["product_type_class"] as? String, let productObject = newObject( className ) {
-            if let productObject = productObject as? BitcommerceProduct {
-                productObject.load(fromJson:jsonHash)
-                return productObject
-            }
-        }
-        return nil
-    }
-    
     func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
         loadLocal( completion:completion )
         loadRemote( completion:completion )
@@ -129,7 +119,7 @@ class BitcommerceProduct: BitweaverRestObject {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
                         if let jsonHash = jsonResult as? Dictionary<String, String> {
-                            if let newProduct = jsonToProduct(fromJson: jsonHash) {
+                            if let className = jsonHash["product_type_class"], let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct  {
                                 if let localUuid = UUID.init(uuidString: dirUuid) {
                                     newProduct.contentUuid = localUuid
                                 }
@@ -163,7 +153,7 @@ class BitcommerceProduct: BitweaverRestObject {
                         if let jsonList = response.result.value as? [String: [String:Any]] {
                             var productList = Dictionary<String, BitcommerceProduct>()
                             for (_,jsonHash) in jsonList as [String: [String:Any]] {
-                                if let newProduct = self.jsonToProduct(fromJson: jsonHash) {
+                                if let className = jsonHash["product_type_class"] as? String, let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct  {
                                     newProduct.cacheLocal()
                                     productList[newProduct.contentUuid.uuidString] = newProduct
                                 }

@@ -94,8 +94,9 @@ class BitweaverRestObject: NSObject {
         return mappings
     }
 
-    func setField(_ propertyName:String,_ stringValue:String ) {
-        if responds(to: NSSelectorFromString(propertyName)) {
+    // users object property
+    func setProperty(_ propertyName:String,_ propertyValue:Any ) {
+        if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
             if propertyName.hasSuffix("Date") {
                 setValue(stringValue.toDateISO8601(), forKey: propertyName )
             } else if propertyName.hasSuffix("Uri") {
@@ -118,10 +119,8 @@ class BitweaverRestObject: NSObject {
             } else {
                 setValue(stringValue, forKey: propertyName )
             }
-//            jsonHash[name] = value
-//            storeLocal()
         } else {
-            BitweaverAppBase.log("setField failed: %@ = %@", propertyName, stringValue)
+            BitweaverAppBase.log("set property failed: %@ = %@", propertyName, propertyValue)
         }
     }
     
@@ -168,27 +167,21 @@ class BitweaverRestObject: NSObject {
         }
         let properties = getAllPropertyMappings()
         for (remoteKey,remoteValue) in remoteHash {
-            if let propertyName = properties[remoteKey] {
-                NSLog( "loadRemote %@=>%@", remoteKey, propertyName );
-                if let stringValue = remoteValue as? String {
-                    setField(propertyName, stringValue)
+                if let propertyName = properties[remoteKey] {
+                    NSLog( "load field %@=>%@", remoteKey, propertyName );
+                    setProperty(propertyName, remoteValue)
                 }
-            }
         }
     }
     
-    func newObject(_ className:String ) -> BitweaverRestObject? {
-        var classNames:[String] = [className,self.myClassName]
-        classNames.append(self.myClassName)
-        
-        for className in classNames {
-            if let productClass = NSClassFromString(className) as? NSObject.Type {
-                let productObject = productClass.init()
-                if let productObject = productObject as? BitweaverRestObject {
-                    productObject.createdDate = Date()
-                    productObject.lastModifiedDate = Date()
-                    return productObject
-                }
+    static func newObject(_ className:String,_ jsonHash:[String:Any] ) -> BitweaverRestObject? {
+        if let productClass = NSClassFromString(className) as? NSObject.Type {
+            let productObject = productClass.init()
+            if let productObject = productObject as? BitweaverRestObject {
+                productObject.createdDate = Date()
+                productObject.lastModifiedDate = Date()
+                productObject.load(fromJson: jsonHash)
+                return productObject
             }
         }
         return nil
@@ -247,11 +240,11 @@ class BitweaverRestObject: NSObject {
             
             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
             
-            let exportHash = exportToHash()
             let headers = gBitSystem.httpHeaders()
             
             Alamofire.upload(
                 multipartFormData: { multipartFormData in
+                    let exportHash = self.exportToHash()
                     for (key,value) in exportHash {
                         multipartFormData.append(value.data(using: .utf8)!, withName: key)
                     }
@@ -263,7 +256,7 @@ class BitweaverRestObject: NSObject {
                 },
                 usingThreshold:UInt64.init(),
                 to:remoteUrl(),
-                method:.put,
+                method:.post,
                 headers:headers,
                 encodingCompletion: { encodingResult in
                     var ret = false
