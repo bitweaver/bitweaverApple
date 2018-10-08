@@ -22,10 +22,12 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
 
-    var isUploading = false
+    var uploadStatus:HTTPStatusCode = HTTPStatusCode.none
     var uploadPercentage: Float = 0.0
     var uploadMessage = ""
 
+    var isUploading:Bool { get { return uploadStatus.rawValue > HTTPStatusCode.none.rawValue && uploadStatus.rawValue < HTTPStatusCode.ok.rawValue } }
+    
     var jsonHash: [String:String] = [:]
 
     var primaryId:String? {
@@ -37,15 +39,16 @@ class BitweaverRestObject: NSObject {
     func remoteUrl() -> String {
         return gBitSystem.apiBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString);
     }
+    
     func startUpload() {
         uploadPercentage = 0.01
-        isUploading = true
+        uploadStatus = HTTPStatusCode.continue
         NotificationCenter.default.post(name: NSNotification.Name("UploadingStart"), object: self)
     }
     
     func cancelUpload() {
         uploadPercentage = 0.0
-        isUploading = false
+        uploadStatus = HTTPStatusCode.clientClosedRequest
         NotificationCenter.default.post(name: NSNotification.Name("UploadingCancel"), object: self)
     }
     
@@ -53,32 +56,26 @@ class BitweaverRestObject: NSObject {
     var isRemote:Bool { get { return contentId != nil } }
     var isLocal:Bool { get { return contentId == nil } }
 
-    var localPathBase:String { get {
-       var pathBase = ""
-        if gBitUser.isAuthenticated() {
-            pathBase += "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"
-        } else {
-            pathBase += "local/"
-        }
-        return pathBase+contentTypeGuid+"/"
-    } }
-    
-    var localUrl:URL? { get {
-        return BitweaverAppBase.dirForDataStorage( localPathBase )
-    } }
-    
     var localProjectsUrl:URL? { get {
-        return BitweaverAppBase.dirForDataStorage( "local/bitproduct" )
+        return BitweaverAppBase.dirForDataStorage( "local/"+contentTypeGuid )
     } }
+    
+    var localPath:URL? { get {
+        return localProjectsUrl?.appendingPathComponent(contentUuid.uuidString)
+    } }
+    
+    var cacheProjectsUrl:URL? { get {
+        return BitweaverAppBase.dirForDataStorage( "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"+contentTypeGuid )
+    } }
+    
+    private var cachePath:URL? { get {
+        return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0")
+    } }
+  
     
     var jsonFile:URL? { get {
-        var contentDir = localPathBase
-        if primaryId != nil {
-            contentDir += (primaryId?.description)!
-        } else {
-            contentDir += contentUuid.uuidString
-        }
-        return BitweaverAppBase.fileForDataStorage("content.json", contentDir )
+        let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath
+        return contentDir?.appendingPathComponent("content.json")
     } }
     
     func getAllPropertyMappings() -> [String : String] {
@@ -233,6 +230,7 @@ class BitweaverRestObject: NSObject {
     func localToRemote() {
         let completionBlock: (BitweaverRestObject,Bool,String) -> Void  = { newProduct,isSuccess,message in
             if isSuccess {
+                let localConfig = self.localPath
                 NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: nil, userInfo: ["product":newProduct as Any])
             } else {
             }
@@ -294,12 +292,14 @@ class BitweaverRestObject: NSObject {
                                         
                                         errorMessage = gBitSystem.httpError( response:response, request:response.request )
                                     default:
-                                        errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
+                                        errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(statusCode), response.request?.url?.host ?? "")
                                     }
+                                    self.uploadStatus = HTTPStatusCode(rawValue: statusCode) ?? HTTPStatusCode.none
                                 }
                                 completion(self,ret,errorMessage)
                             }
                         case .failure(let encodingError):
+                            self.uploadStatus = HTTPStatusCode.none
                             errorMessage = encodingError.localizedDescription
                             completion(self,ret,errorMessage)
                     }

@@ -111,8 +111,6 @@ class BitcommerceProduct: BitweaverRestObject {
     }
 
     func loadLocal( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
-        guard localUrl != nil else {return}
-    
         let fileManager = FileManager.default
         let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
         let enumerator = FileManager.default.enumerator(at: localProjectsUrl!, includingPropertiesForKeys: resourceKeys,
