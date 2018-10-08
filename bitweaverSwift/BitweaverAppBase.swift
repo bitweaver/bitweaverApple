@@ -110,7 +110,6 @@ class BitweaverAppBase: NSObject {
             return appFolder.appendingPathComponent(fileName)
         }
         return nil
-
     }
     
     static func dirForDataStorage(_ subDirectory:String? ) -> URL? {

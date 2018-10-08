@@ -50,8 +50,8 @@ class BitweaverRestObject: NSObject {
     }
     
 
-    var isRemote:Bool { get { return primaryId != nil } }
-    var isLocal:Bool { get { return primaryId == nil } }
+    var isRemote:Bool { get { return contentId != nil } }
+    var isLocal:Bool { get { return contentId == nil } }
 
     var localPathBase:String { get {
        var pathBase = ""
@@ -66,7 +66,11 @@ class BitweaverRestObject: NSObject {
     var localUrl:URL? { get {
         return BitweaverAppBase.dirForDataStorage( localPathBase )
     } }
-
+    
+    var localProjectsUrl:URL? { get {
+        return BitweaverAppBase.dirForDataStorage( "local/bitproduct" )
+    } }
+    
     var jsonFile:URL? { get {
         var contentDir = localPathBase
         if primaryId != nil {
@@ -84,7 +88,7 @@ class BitweaverRestObject: NSObject {
             "user_id" : "userId",
             "date_created" : "createdDate",
             "date_last_modified" : "lastModifiedDate",
-            "uuid" : "contentUuid",
+//            "uuid" : "contentUuid",
             "display_uri" : "displayUri"
         ]
         let sendableProperties = getSendablePropertyMappings()
@@ -224,6 +228,16 @@ class BitweaverRestObject: NSObject {
         jsonString += "}"
         
         return jsonString
+    }
+
+    func localToRemote() {
+        let completionBlock: (BitweaverRestObject,Bool,String) -> Void  = { newProduct,isSuccess,message in
+            if isSuccess {
+                NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: nil, userInfo: ["product":newProduct as Any])
+            } else {
+            }
+        }
+        storeRemote(completion: completionBlock)
     }
     
     func store(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {

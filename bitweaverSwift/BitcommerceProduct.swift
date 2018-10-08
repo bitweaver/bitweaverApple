@@ -90,17 +90,32 @@ class BitcommerceProduct: BitweaverRestObject {
         return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
+    func newProduct(_ jsonHash:[String:Any] ) -> BitcommerceProduct? {
+        // default is type of class invoked
+        var classNames:[String] = [NSStringFromClass(type(of:self))]
+        if let productClass = jsonHash["product_type_class"] as? String {
+            // will attempt to create product of specific type listed
+            classNames.insert(productClass, at: 0)
+        }
+        for className in classNames {
+            if let newProduct = BitweaverRestObject.newObject( className, jsonHash ) as? BitcommerceProduct {
+                return newProduct
+            }
+        }
+        return nil
+    }
+    
     func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
         loadLocal( completion:completion )
         loadRemote( completion:completion )
     }
-    
+
     func loadLocal( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
         guard localUrl != nil else {return}
     
         let fileManager = FileManager.default
         let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
-        let enumerator = FileManager.default.enumerator(at: localUrl!, includingPropertiesForKeys: resourceKeys,
+        let enumerator = FileManager.default.enumerator(at: localProjectsUrl!, includingPropertiesForKeys: resourceKeys,
                                                         options: [.skipsHiddenFiles,.skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
                                                             print("directoryEnumerator error at \(url): ", error)
                                                             return true
@@ -118,17 +133,14 @@ class BitcommerceProduct: BitweaverRestObject {
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                        if let jsonHash = jsonResult as? Dictionary<String, String>, let productClass = jsonHash["product_type_class"] {
-                            let classNames = [productClass,String(describing: self)]
-                            for className in classNames {
-                                if let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct {
-                                    if let localUuid = UUID.init(uuidString: dirUuid) {
-                                        newProduct.contentUuid = localUuid
-                                    }
-                                    productList[dirUuid] = newProduct
-                                    print( "Loaded: " + dirUuid.description)
-                                    break
+                        if let jsonHash = jsonResult as? Dictionary<String, String> {
+                            if let newProduct = self.newProduct( jsonHash ) {
+                                if let localUuid = UUID.init(uuidString: dirUuid) {
+                                    newProduct.contentUuid = localUuid
                                 }
+                                productList[dirUuid] = newProduct
+                                print( "Loaded: " + dirUuid.description)
+                                break
                             }
                         }
                     }
@@ -157,15 +169,9 @@ class BitcommerceProduct: BitweaverRestObject {
                         if let jsonList = response.result.value as? [String: [String:Any]] {
                             var productList = Dictionary<String, BitcommerceProduct>()
                             for (_,jsonHash) in jsonList as [String: [String:Any]] {
-                                if let productClass = jsonHash["product_type_class"] as? String {
-                                    let classNames = [productClass,String(describing: self)]
-                                    for className in classNames {
-                                        if let newProduct = BitcommerceProduct.newObject( className, jsonHash ) as? BitcommerceProduct  {
-                                            newProduct.cacheLocal()
-                                            productList[newProduct.contentUuid.uuidString] = newProduct
-                                        }
-                                        break
-                                    }
+                                if let newProduct = self.newProduct( jsonHash ) {
+                                    newProduct.cacheLocal()
+                                    productList[newProduct.contentUuid.uuidString] = newProduct
                                 }
                             }
                             completion( productList )

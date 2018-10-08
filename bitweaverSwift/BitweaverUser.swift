@@ -93,16 +93,9 @@ class BitweaverUser: BitweaverRestObject {
         return userId != nil
     }
 
-    func verifyAuthentication(_ object: BitcommerceProduct?, selectorName: String?, callbackParameter: Any?) -> Bool {
+    func verifyAuthentication() -> Bool {
         if !isAuthenticated() {
-            callbackObject = object
-            callbackSelectorName = selectorName ?? ""
             gBitSystem.showAuthenticationDialog()
-        } else {
-//clang diagnostic push
-//clang diagnostic ignored "-Warc-performSelector-leaks"
-// SWIFTCONVERT            (object as AnyObject).perform(NSSelectorFromString(selectorName!))
-//clang diagnostic pop
         }
         return isAuthenticated()
     }
