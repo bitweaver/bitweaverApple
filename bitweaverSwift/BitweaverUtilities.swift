@@ -14,6 +14,18 @@ typealias BWView = NSView
 typealias BWViewController = NSViewController
 typealias BWColor = NSColor
 
+extension BWViewController {
+    func dialogOKCancel(question: String, text: String) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = question
+        alert.informativeText = text
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Cancel")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+}
+
 extension NSObject {
     var myClassName: String {
         return NSStringFromClass(type(of: self))
@@ -27,6 +39,19 @@ extension String {
         RFC3339DateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
         RFC3339DateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         return RFC3339DateFormatter.date(from: self)
+    }
+}
+
+extension URL {
+    func mimeType() -> String {
+        let pathExtension = self.pathExtension
+        
+        if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue() {
+            if let mimetype = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
+                return mimetype as String
+            }
+        }
+        return "application/octet-stream"
     }
 }
 

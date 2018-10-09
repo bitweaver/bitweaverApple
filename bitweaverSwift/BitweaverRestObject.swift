@@ -23,7 +23,7 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var lastModifiedDate:Date?
 
     var uploadStatus:HTTPStatusCode = HTTPStatusCode.none
-    var uploadPercentage: Float = 0.0
+    var uploadPercentage: Double = 0.0
     var uploadMessage = ""
 
     var isUploading:Bool { get { return uploadStatus.rawValue > HTTPStatusCode.none.rawValue && uploadStatus.rawValue < HTTPStatusCode.ok.rawValue } }
@@ -261,15 +261,29 @@ class BitweaverRestObject: NSObject {
         return jsonString
     }
 
-    func localToRemote() {
-        let completionBlock: (BitweaverRestObject,Bool,String) -> Void  = { newProduct,isSuccess,message in
-            if isSuccess {
-                let localConfig = self.localPath
-                NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: nil, userInfo: ["product":newProduct as Any])
-            } else {
+    func localToRemote(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
+        if isLocal {
+            let completionBlock: (BitweaverRestObject,Bool,String) -> Void  = { newProduct,isSuccess,message in
+                do {
+                    if isSuccess {
+                        if let cacheUrl = self.cachePath, let localUrl = self.localPath, FileManager.default.fileExists(atPath: localUrl.path) {
+                            if FileManager.default.fileExists(atPath: cacheUrl.path) {
+                                try FileManager.default.trashItem(at: localUrl, resultingItemURL: nil)
+                            } else {
+                                try FileManager.default.createDirectory(at: cacheUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+                                try FileManager.default.moveItem(at: localUrl, to: self.cachePath!)
+                            }
+                        }
+                        NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: newProduct)
+                    } else {
+                    }
+                    completion( newProduct, isSuccess, message )
+                } catch {
+                    BitweaverAppBase.log( "Local to Remote directory move failed: \(error)", self.localPath ?? "", self.cachePath ?? "" )
+                }
             }
+            storeRemote(completion: completionBlock)
         }
-        storeRemote(completion: completionBlock)
     }
     
     func store(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
@@ -280,7 +294,11 @@ class BitweaverRestObject: NSObject {
         }
     }
     
-    private func storeRemote(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
+    func getUploadFiles() -> [String:URL] {
+        return [:]
+    }
+    
+    func storeRemote(uploadFiles:Bool = false, completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
         if !isUploading {
             startUpload()
             
@@ -294,9 +312,11 @@ class BitweaverRestObject: NSObject {
                     for (key,value) in exportHash {
                         multipartFormData.append(value.data(using: .utf8)!, withName: key)
                     }
-//                  if let imageData = frontCoverImage?.toDataJPG() {
-//                      multipartFormData.appendBodyPart(data: imageData, name: "front_cover", fileName: "front_cover_upload.jpg", mimeType: "image/jpeg")
-//                  }
+                    if uploadFiles {
+                        for (key,fileUrl) in self.getUploadFiles() {
+                            multipartFormData.append(fileUrl, withName: key, fileName: fileUrl.lastPathComponent, mimeType: fileUrl.mimeType())
+                        }
+                    }
 //                  multipartFormData.append(unicornImageURL, withName: "unicorn")
 //                  multipartFormData.append(rainbowImageURL, withName: "rainbow")
                 },
@@ -309,6 +329,12 @@ class BitweaverRestObject: NSObject {
                     var errorMessage = ""
                     switch encodingResult {
                         case .success(let upload, _, _):
+                            upload.uploadProgress { progress in
+                                self.uploadPercentage = 100.0 * progress.fractionCompleted // make sure we don't have zero
+                                self.uploadMessage = "Uploading..."
+                                NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+                                print(progress.fractionCompleted)
+                            }
                             upload.responseJSON { response in
                                 if let statusCode = response.response?.statusCode {
                                     switch statusCode {
@@ -337,48 +363,6 @@ class BitweaverRestObject: NSObject {
                     }
                 }
             )
-            
-            /* SWIFTCONVERT
-             var putRequest: NSMutableURLRequest? = gBitweaverHTTPClient.multipartFormRequest(withMethod: "POST", path: restUrlPath, parameters: parameters, constructingBodyWith: { formData in
-             if( frontCover != nil ) {
-             [formData appendPartWithFileData:UIImageJPEGRepresentation(frontCover, 0.85) name:@"front_cover_file" fileName:@"ratio11-cover-front" mimeType:@"image/jpeg"];
-             }
-             
-             if( backCover != nil ) {
-             [formData appendPartWithFileData:UIImageJPEGRepresentation(backCover, 0.85) name:@"back_cover_file" fileName:@"back-cover" mimeType:@"image/jpeg"];
-             }
-             
-             let data = NSData(contentsOfFile: Bundle.main.path(forResource: "\(self.ratio)-text-block", ofType: "pdf") ?? "") as Data?
-             formData?.appendPart(withFileData: data, name: "pdf_text", fileName: "\(self.ratio)-text-block.pdf", mimeType: "application/pdf")
-             })
-             
-             gBitweaverHTTPClient.prepareRequestHeaders(putRequest)
-             
-             restOperation = AFJSONRequestOperation(request: putRequest! as URLRequest,
-             success: { request, response, JSON in
-             self.load(fromRemoteProperties: JSON as! [String : String])
-             self.uploadPercentage = 100.0
-             self.uploadMessage = "Upload complete!"
-             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
-             }, failure: { request, response, error, JSON in
-             let errorMessage = gBitweaverHTTPClient.errorMessage(withResponse: response!, urlRequest: request, json: JSON as! [String:Any] )
-             self.uploadMessage = "Upload failed: "+errorMessage!
-             self.uploadPercentage = 100.0
-             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
-             })
-             
-             restOperation?.setUploadProgressBlock = { bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-             self.uploadPercentage = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) + 0.01 // make sure we don't have zero
-             self.uploadMessage = "Uploading..."
-             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
-             }
-             
-             uploadMessage = "Preparing upload."
-             NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
-             if let anOperation = restOperation {
-             OperationQueue().addOperation(anOperation)
-             }
-             */
         }
     }
     
@@ -387,7 +371,7 @@ class BitweaverRestObject: NSObject {
         storeLocal()
     }
     
-    private func storeLocal(completion: ((BitweaverRestObject,Bool,String) -> Void)? = nil ) {
+    func storeLocal(completion: ((BitweaverRestObject,Bool,String) -> Void)? = nil ) {
         if let fileURL = contentFile {
             var errorMessage = ""
             let jsonString = remoteToJson()
@@ -398,7 +382,7 @@ class BitweaverRestObject: NSObject {
                 print( fileURL.description )
             } catch {
                 /* error handling here */
-                errorMessage = "Failed do save JSON to "+fileURL.absoluteString
+                errorMessage = "Failed to save JSON to "+fileURL.absoluteString
                 completion?(self,false,errorMessage)
             }
         }
@@ -412,7 +396,7 @@ class BitweaverRestObject: NSObject {
                 print( fileURL.description )
             } catch {
                 /* error handling here */
-                errorMessage = "Failed do save JSON to "+fileURL.absoluteString
+                errorMessage = "Failed to save JSON to "+fileURL.absoluteString
                 completion?(self,false,errorMessage)
             }
         }
