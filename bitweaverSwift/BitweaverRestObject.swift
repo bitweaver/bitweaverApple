@@ -28,7 +28,8 @@ class BitweaverRestObject: NSObject {
 
     var isUploading:Bool { get { return uploadStatus.rawValue > HTTPStatusCode.none.rawValue && uploadStatus.rawValue < HTTPStatusCode.ok.rawValue } }
     
-    var jsonHash: [String:String] = [:]
+    var remoteHash: [String:String] = [:]
+    var localHash: [String:String] = [:]
 
     var primaryId:String? {
         get {
@@ -72,11 +73,15 @@ class BitweaverRestObject: NSObject {
         return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0")
     } }
   
-    
-    var jsonFile:URL? { get {
+    var contentFile:URL? { get {
         let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath
         return contentDir?.appendingPathComponent("content.json")
     } }
+    
+    var localFile:URL? { get {
+        let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath
+        return contentDir?.appendingPathComponent("local.json")
+        } }
     
     func getAllPropertyMappings() -> [String : String] {
         var mappings = [
@@ -126,7 +131,7 @@ class BitweaverRestObject: NSObject {
     }
     
     func getField(_ name:String ) -> Any {
-        return jsonHash[name] as Any
+        return remoteHash[name] as Any
     }
     
     func getSendablePropertyMappings() -> [String : String] {
@@ -157,13 +162,13 @@ class BitweaverRestObject: NSObject {
         return ret
     }
 
-    func load(fromJson remoteHash: [String:Any]) {
-        jsonHash.removeAll()
-        for (key,value) in remoteHash {
+    func load(fromJson: [String:Any]) {
+        remoteHash.removeAll()
+        for (key,value) in fromJson {
             if value is String {
-                jsonHash[key] = value as? String
+                remoteHash[key] = value as? String
             } else if let valueObject = value as AnyObject? {
-                jsonHash[key] = valueObject.description
+                remoteHash[key] = valueObject.description
             }
         }
         let properties = getAllPropertyMappings()
@@ -175,49 +180,78 @@ class BitweaverRestObject: NSObject {
         }
     }
     
-    static func newObject(_ className:String,_ jsonHash:[String:Any] ) -> BitweaverRestObject? {
+    static func newObject(_ className:String,_ remoteHash:[String:Any] ) -> BitweaverRestObject? {
         if let productClass = NSClassFromString(className) as? NSObject.Type {
             let productObject = productClass.init()
             if let productObject = productObject as? BitweaverRestObject {
                 productObject.createdDate = Date()
                 productObject.lastModifiedDate = Date()
-                productObject.load(fromJson: jsonHash)
+                productObject.load(fromJson: remoteHash)
                 return productObject
             }
         }
         return nil
     }
 
-    func exportToHash() -> [String:String] {
-        var jsonStore = jsonHash
-        for (key,propName) in getAllPropertyMappings() {
-            if let propValue = value(forKey:propName) as AnyObject? {
-                if let nativeValue = propValue as? UUID {
-                    jsonStore[key] = nativeValue.uuidString
-                } else if let nativeValue = propValue as? URL {
-                    jsonStore[key] = nativeValue.absoluteString
-                } else if let nativeValue = propValue as? Date {
-                    jsonStore[key] = nativeValue.toStringISO8601()
-                } else if let nativeValue = propValue as? BWColor {
-                    jsonStore[key] = nativeValue.toHexString()
-                } else if let nativeValue = propValue as? NSNumber {
-                    if nativeValue.floatValue != 0 {
-                        jsonStore[key] = nativeValue.description
-                    }
-                } else if let nativeValue = propValue as? String {
-                    if nativeValue.count > 0 {
-                        jsonStore[key] = nativeValue
-                    }
-                } else {
-                    print( "unknown storeLocal: ", propName )
+    func getProperty(_ propertyName:String ) -> String? {
+        var ret:String?
+        if let propValue = value(forKey:propertyName) as AnyObject? {
+            if let nativeValue = propValue as? UUID {
+                ret = nativeValue.uuidString
+            } else if let nativeValue = propValue as? URL {
+                ret = nativeValue.absoluteString
+            } else if let nativeValue = propValue as? Date {
+                ret = nativeValue.toStringISO8601()!
+            } else if let nativeValue = propValue as? BWColor {
+                ret = nativeValue.toHexString()
+            } else if let nativeValue = propValue as? NSNumber {
+                if nativeValue.floatValue != 0 {
+                    ret = nativeValue.description
                 }
+            } else if let nativeValue = propValue as? String {
+                if nativeValue.count > 0 {
+                    ret = nativeValue
+                }
+            } else {
+                print( "unknown storeLocal: ", propertyName )
             }
         }
-        return jsonStore
+        return ret
+    }
+    
+    func localToHash() -> [String:String] {
+        var remoteStore = remoteHash
+        for (key,propertyName) in getAllPropertyMappings() {
+            if let propString = getProperty(propertyName) {
+                remoteStore[key] = propString
+            }
+        }
+        return remoteStore
+    }
+    
+    func localToJson() -> String {
+        let jsonStore = self.remoteToHash()
+        var jsonString = "{"
+        for (key,value) in jsonStore {
+            jsonString += "\""+key+"\":\""+value+"\",\n"
+        }
+        jsonString += "}"
+        
+        return jsonString
+    }
+    
+    func remoteToHash() -> [String:String] {
+        var remoteStore = remoteHash
+        for (key,propertyName) in getAllPropertyMappings() {
+            if let propString = getProperty(propertyName) {
+                remoteStore[key] = propString
+            }
+        }
+        return remoteStore
     }
 
-    func exportToJson() -> String {
-        let jsonStore = self.exportToHash()
+    func remoteToJson() -> String {
+        let jsonStore = self.remoteToHash()
         var jsonString = "{"
         for (key,value) in jsonStore {
             jsonString += "\""+key+"\":\""+value+"\",\n"
@@ -242,7 +276,7 @@ class BitweaverRestObject: NSObject {
         if isRemote {
             storeRemote(completion: completion)
         } else {
-            storeLocal()
+            storeLocal(completion: completion)
         }
     }
     
@@ -256,7 +290,7 @@ class BitweaverRestObject: NSObject {
             
             Alamofire.upload(
                 multipartFormData: { multipartFormData in
-                    let exportHash = self.exportToHash()
+                    let exportHash = self.remoteToHash()
                     for (key,value) in exportHash {
                         multipartFormData.append(value.data(using: .utf8)!, withName: key)
                     }
@@ -279,12 +313,10 @@ class BitweaverRestObject: NSObject {
                                 if let statusCode = response.response?.statusCode {
                                     switch statusCode {
                                     case 200 ... 399:
-                                        if let jsonHash = response.result.value as? [String:Any] {
-                                            self.load(fromJson: jsonHash)
-                                            ret = true
-                                        } else {
-                                            errorMessage = "JSON Format Error"
+                                        if let remoteHash = response.result.value as? [String:Any] {
+                                            self.load(fromJson: remoteHash)
                                         }
+                                        ret = true
                                     case 400 ... 499:
                                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                                             print("Data: \(utf8Text)")
@@ -355,15 +387,33 @@ class BitweaverRestObject: NSObject {
         storeLocal()
     }
     
-    private func storeLocal() {
-        if let fileURL = jsonFile {
-            let jsonString = exportToJson()
+    private func storeLocal(completion: ((BitweaverRestObject,Bool,String) -> Void)? = nil ) {
+        if let fileURL = contentFile {
+            var errorMessage = ""
+            let jsonString = remoteToJson()
             do {
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
+                completion?(self,true,errorMessage)
+
                 print( fileURL.description )
             } catch {
                 /* error handling here */
-                print("Failed do save JSON to ", fileURL)
+                errorMessage = "Failed do save JSON to "+fileURL.absoluteString
+                completion?(self,false,errorMessage)
+            }
+        }
+        if let fileURL = localFile {
+            var errorMessage = ""
+            let jsonString = localToJson()
+            do {
+                try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
+                completion?(self,true,errorMessage)
+                
+                print( fileURL.description )
+            } catch {
+                /* error handling here */
+                errorMessage = "Failed do save JSON to "+fileURL.absoluteString
+                completion?(self,false,errorMessage)
             }
         }
     }

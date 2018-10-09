@@ -83,22 +83,22 @@ class BitcommerceProduct: BitweaverRestObject {
     
     func getTypeImage() -> BWImage {
         var ret = BWImage.init(named: "NSAdvanced")
-        if let defaultImage = jsonHash["product_type_icon"] {
+        if let defaultImage = remoteHash["product_type_icon"] {
             let imageUrl = URL.init(fileURLWithPath: defaultImage)
             ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent)
         }
         return ret ?? NSImage.init(named: "NSAdvanced")!
     }
     
-    func newProduct(_ jsonHash:[String:Any] ) -> BitcommerceProduct? {
+    func newProduct(_ remoteHash:[String:Any] ) -> BitcommerceProduct? {
         // default is type of class invoked
         var classNames:[String] = [NSStringFromClass(type(of:self))]
-        if let productClass = jsonHash["product_type_class"] as? String {
+        if let productClass = remoteHash["product_type_class"] as? String {
             // will attempt to create product of specific type listed
             classNames.insert(productClass, at: 0)
         }
         for className in classNames {
-            if let newProduct = BitweaverRestObject.newObject( className, jsonHash ) as? BitcommerceProduct {
+            if let newProduct = BitweaverRestObject.newObject( className, remoteHash ) as? BitcommerceProduct {
                 return newProduct
             }
         }
@@ -131,8 +131,8 @@ class BitcommerceProduct: BitweaverRestObject {
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                        if let jsonHash = jsonResult as? Dictionary<String, String> {
-                            if let newProduct = self.newProduct( jsonHash ) {
+                        if let remoteHash = jsonResult as? Dictionary<String, String> {
+                            if let newProduct = self.newProduct( remoteHash ) {
                                 if let localUuid = UUID.init(uuidString: dirUuid) {
                                     newProduct.contentUuid = localUuid
                                 }
@@ -166,8 +166,8 @@ class BitcommerceProduct: BitweaverRestObject {
                     case .success :
                         if let jsonList = response.result.value as? [String: [String:Any]] {
                             var productList = Dictionary<String, BitcommerceProduct>()
-                            for (_,jsonHash) in jsonList as [String: [String:Any]] {
-                                if let newProduct = self.newProduct( jsonHash ) {
+                            for (_,remoteHash) in jsonList as [String: [String:Any]] {
+                                if let newProduct = self.newProduct( remoteHash ) {
                                     newProduct.cacheLocal()
                                     productList[newProduct.contentUuid.uuidString] = newProduct
                                 }
