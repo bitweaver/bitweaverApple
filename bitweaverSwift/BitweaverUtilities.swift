@@ -95,9 +95,49 @@ extension BWImage {
                        context: nil,
                        hints: nil)
     }
-    //    convenience init?(named name: String) {
-    //        self.init(named: Name(name))
-    //    }
+    @discardableResult
+    func saveAsPNG(url: URL) -> Bool {
+        guard let tiffData = self.tiffRepresentation else {
+            print("failed to get tiffRepresentation. url: \(url)")
+            return false
+        }
+        let imageRep = NSBitmapImageRep(data: tiffData)
+        guard let imageData = imageRep?.representation(using: .png, properties: [:]) else {
+            print("failed to get PNG representation. url: \(url)")
+            return false
+        }
+        do {
+            try imageData.write(to: url)
+            return true
+        } catch {
+            print("failed to write to disk. url: \(url)")
+            return false
+        }
+    }
+    @discardableResult
+    func toDataJPG() -> Data? {
+        guard let tiffData = self.tiffRepresentation else {
+            print("failed to get tiffRepresentation.")
+            return nil
+        }
+        let imageRep = NSBitmapImageRep(data: tiffData)
+        guard let imageData = imageRep?.representation(using: .jpeg, properties: [:]) else {
+            print("failed to get JPG representation.")
+            return nil
+        }
+        return imageData
+    }
+    @discardableResult
+    func saveAsJPG(url: URL) -> Bool {
+        do {
+            guard let imageData = self.toDataJPG() else {return false}
+            try imageData.write(to: url)
+            return true
+        } catch {
+            BitweaverAppBase.log("failed to write to disk. url: %@", url.absoluteString)
+            return false
+        }
+    }
 }
 
 extension BWColor {
