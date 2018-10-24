@@ -81,13 +81,17 @@ class BitcommerceProduct: BitweaverRestObject {
         }
     }
     
+    func getTypeImageDefault() -> NSImage {
+        return BWImage.init(named: "NSAdvanced")!
+    }
+    
     func getTypeImage() -> BWImage {
-        var ret = BWImage.init(named: "NSAdvanced")
+        var ret:BWImage?
         if let defaultImage = remoteHash["product_type_icon"] {
             let imageUrl = URL.init(fileURLWithPath: defaultImage)
-            ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent)
+            ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent) ?? nil
         }
-        return ret ?? NSImage.init(named: "NSAdvanced")!
+        return ret ?? getTypeImageDefault()
     }
     
     func newProduct(_ remoteHash:[String:Any] ) -> BitcommerceProduct? {
