@@ -68,13 +68,7 @@ class BitweaverUser: BitweaverRestObject {
             "user_id": "userId",
             "login" : "login",
             "last_login" : "lastLogin",
-            "registration_date" : "registrationDate",
-            "portrait_path" : "portraitPath",
-            "portrait_url" : "portraitUrl",
-            "avatar_path" : "avatarPath",
-            "avatar_url" : "avatarUrl",
-            "logo_path" : "logoPath",
-            "logo_url" : "logoUrl"
+            "registration_date" : "registrationDate"
         ]
         for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
         return mappings

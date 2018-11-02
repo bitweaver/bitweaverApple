@@ -9,6 +9,7 @@
 
 import Foundation
 import Alamofire
+import os.log
 
 @objc(BitweaverRestObject)
 class BitweaverRestObject: NSObject {
@@ -103,6 +104,9 @@ class BitweaverRestObject: NSObject {
     // users object property
     func setProperty(_ propertyName:String,_ propertyValue:Any ) {
         if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
+            if #available(OSX 10.12, *) {
+                os_log( "%@ = %@", propertyName, stringValue )
+            }
             if propertyName.hasSuffix("Date") {
                 setValue(stringValue.toDateISO8601(), forKey: propertyName )
             } else if propertyName.hasSuffix("Uri") {
