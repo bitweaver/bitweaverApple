@@ -6,16 +6,28 @@
 //  Copyright © 2018 PrestoPhoto. All rights reserved.
 //
 
+// App wide alias for iOS and macOS cross platform convenience
+
+#if os(iOS)
+import UIKit
+
+typealias BWImage = UIImage
+typealias BWView = UIView
+typealias BWViewController = UIViewController
+typealias BWColor = UIColor
+#else
 import Cocoa
 
-// App wide alias for iOS and macOS cross platform convenience
 typealias BWImage = NSImage
 typealias BWView = NSView
 typealias BWViewController = NSViewController
 typealias BWColor = NSColor
+#endif
 
 extension BWViewController {
     func dialogOKCancel(question: String, text: String) -> Bool {
+        #if os(iOS)
+        #elseif os(macOS)
         let alert = NSAlert()
         alert.messageText = question
         alert.informativeText = text
@@ -23,6 +35,8 @@ extension BWViewController {
         alert.addButton(withTitle: "OK")
         alert.addButton(withTitle: "Cancel")
         return alert.runModal() == .alertFirstButtonReturn
+        #endif
+
     }
 }
 
