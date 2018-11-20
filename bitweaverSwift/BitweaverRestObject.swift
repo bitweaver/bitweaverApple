@@ -23,6 +23,13 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
 
+    var defaultTitle:String {
+        get {
+            return "Untitled "+contentTypeGuid
+        }
+    }
+
+    
     var uploadStatus:HTTPStatusCode = HTTPStatusCode.none
     var uploadPercentage: Double = 0.0
     var uploadMessage = ""
