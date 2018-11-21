@@ -14,16 +14,20 @@ class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
     @objc dynamic var productTypeName: String?
-    @objc dynamic var productTypeClass: String
+    @objc dynamic var productTypeClass: String = "BitcommerceProduct"
     @objc dynamic var productModel: String = ""
     @objc dynamic var productDefaultIcon: String = ""
     var enabled: [Bool] = []
     var images: [String:String] = [:]
 
     override init() {
-        productTypeClass = NSStringFromClass(type(of:self))
         super.init()
         contentTypeGuid = "bitproduct"
+        productTypeClass = getRemoteTypeClass()
+    }
+
+    func getRemoteTypeClass() -> String {
+        return NSStringFromClass(type(of:self))
     }
     
     convenience init(fromJson hash: [String:Any]) {
