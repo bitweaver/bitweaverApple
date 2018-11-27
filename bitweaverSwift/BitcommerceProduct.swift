@@ -22,6 +22,10 @@ class BitcommerceProduct: BitweaverRestObject {
 
     override init() {
         super.init()
+    }
+    
+    override func initProperties() {
+        super.initProperties()
         contentTypeGuid = "bitproduct"
         productTypeClass = getRemoteTypeClass()
     }

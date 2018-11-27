@@ -30,6 +30,7 @@ class BitweaverRestObject: NSObject {
     }
 
     
+    var dirty:Bool = false // Has local modifications
     var uploadStatus:HTTPStatusCode = HTTPStatusCode.none
     var uploadPercentage: Double = 0.0
     var uploadMessage = ""
@@ -44,7 +45,15 @@ class BitweaverRestObject: NSObject {
             return contentId != nil ? contentId?.stringValue : contentUuid.uuidString
         }
     }
-    
+
+    override init() {
+        super.init()
+        initProperties()
+    }
+
+    func initProperties()  {
+    }
+
     func remoteUrl() -> String {
         return gBitSystem.apiBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString);
     }
@@ -352,7 +361,9 @@ class BitweaverRestObject: NSObject {
                                     case 200 ... 399:
                                         if let remoteHash = response.result.value as? [String:Any] {
                                             self.load(fromJson: remoteHash)
+                                            self.dirty = false
                                         }
+                                    NotificationCenter.default.post(name: NSNotification.Name("ProductUploadComplete"), object: self)
                                         ret = true
                                     case 400 ... 499:
                                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
