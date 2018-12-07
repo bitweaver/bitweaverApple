@@ -281,26 +281,31 @@ class BitweaverRestObject: NSObject {
         return jsonString
     }
 
+    func completeStoreRemote( newProduct: BitweaverRestObject, isSuccess: Bool, message: String ) -> Void {
+        do {
+            if isSuccess {
+                if let cacheUrl = self.cachePath, let localUrl = self.localPath, FileManager.default.fileExists(atPath: localUrl.path) {
+                    if FileManager.default.fileExists(atPath: cacheUrl.path) {
+                        try FileManager.default.trashItem(at: localUrl, resultingItemURL: nil)
+                    } else {
+                        try FileManager.default.createDirectory(at: cacheUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+                        try FileManager.default.moveItem(at: localUrl, to: self.cachePath!)
+                    }
+                }
+                NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: newProduct)
+            } else {
+            }
+        } catch {
+            BitweaverAppBase.log( "Local to Remote directory move failed: \(error)", self.localPath ?? "", self.cachePath ?? "" )
+        }
+    }
+
+    
     func localToRemote(completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
         if isLocal {
             let completionBlock: (BitweaverRestObject,Bool,String) -> Void  = { newProduct,isSuccess,message in
-                do {
-                    if isSuccess {
-                        if let cacheUrl = self.cachePath, let localUrl = self.localPath, FileManager.default.fileExists(atPath: localUrl.path) {
-                            if FileManager.default.fileExists(atPath: cacheUrl.path) {
-                                try FileManager.default.trashItem(at: localUrl, resultingItemURL: nil)
-                            } else {
-                                try FileManager.default.createDirectory(at: cacheUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-                                try FileManager.default.moveItem(at: localUrl, to: self.cachePath!)
-                            }
-                        }
-                        NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: newProduct)
-                    } else {
-                    }
-                    completion( newProduct, isSuccess, message )
-                } catch {
-                    BitweaverAppBase.log( "Local to Remote directory move failed: \(error)", self.localPath ?? "", self.cachePath ?? "" )
-                }
+                self.completeStoreRemote( newProduct: newProduct, isSuccess: isSuccess, message: message )
+                completion( newProduct, isSuccess, message )
             }
             storeRemote(completion: completionBlock)
         }
@@ -322,7 +327,7 @@ class BitweaverRestObject: NSObject {
         if !isUploading {
             startUpload()
             
-            NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+            NotificationCenter.default.post(name: NSNotification.Name("ContentUploading"), object: self)
             
             let headers = gBitSystem.httpHeaders()
             
@@ -352,7 +357,7 @@ class BitweaverRestObject: NSObject {
                             upload.uploadProgress { progress in
                                 self.uploadPercentage = 100.0 * progress.fractionCompleted // make sure we don't have zero
                                 self.uploadMessage = "Uploading..."
-                                NotificationCenter.default.post(name: NSNotification.Name("ProductUploading"), object: self)
+                                NotificationCenter.default.post(name: NSNotification.Name("ContentUploading"), object: self)
                                 print(progress.fractionCompleted)
                             }
                             upload.responseJSON { response in
@@ -363,7 +368,7 @@ class BitweaverRestObject: NSObject {
                                             self.load(fromJson: remoteHash)
                                             self.dirty = false
                                         }
-                                    NotificationCenter.default.post(name: NSNotification.Name("ProductUploadComplete"), object: self)
+                                    NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
                                         ret = true
                                     case 400 ... 499:
                                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
