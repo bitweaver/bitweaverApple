@@ -37,10 +37,17 @@ class BitweaverUser: BitweaverRestObject {
 
     var displayName:String {
         get {
+            var ret = ""
             if isAuthenticated() {
-                return realName ?? (login ?? (email ?? ""))
+                if let name = realName, !name.isEmpty {
+                    ret = name
+                } else if let name = login, !name.isEmpty {
+                    ret = name
+                } else if let name = email, !name.isEmpty {
+                    ret = name
+                }
             }
-            return ""
+            return ret
         }
     }
     

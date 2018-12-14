@@ -187,16 +187,18 @@ class BitweaverRestObject: NSObject {
         for (key,value) in fromJson {
             if value is String {
                 remoteHash[key] = value as? String
+            } else if value is NSNull {
+                remoteHash[key] = "" //valueObject.description
             } else if let valueObject = value as AnyObject? {
                 remoteHash[key] = valueObject.description
             }
         }
         let properties = getAllPropertyMappings()
         for (remoteKey,remoteValue) in remoteHash {
-                if let propertyName = properties[remoteKey] {
-                    NSLog( "load field %@=>%@", remoteKey, propertyName );
-                    setProperty(propertyName, remoteValue)
-                }
+            if let propertyName = properties[remoteKey] {
+                NSLog( "load field %@=>%@", remoteKey, propertyName );
+                setProperty(propertyName, remoteValue)
+            }
         }
     }
     
