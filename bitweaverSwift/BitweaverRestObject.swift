@@ -107,7 +107,7 @@ class BitweaverRestObject: NSObject {
             "user_id" : "userId",
             "date_created" : "createdDate",
             "date_last_modified" : "lastModifiedDate",
-//            "uuid" : "contentUuid",
+            "uuid" : "contentUuid",
             "display_uri" : "displayUri"
         ]
         let sendableProperties = getSendablePropertyMappings()
@@ -251,7 +251,7 @@ class BitweaverRestObject: NSObject {
         return remoteStore
     }
     
-    func localToJson() -> String {
+    func toJson() -> String {
         let jsonStore = self.remoteToHash()
         var jsonString = "{"
         for (key,value) in jsonStore {
@@ -261,7 +261,7 @@ class BitweaverRestObject: NSObject {
         
         return jsonString
     }
-    
+
     func remoteToHash() -> [String:String] {
         var remoteStore = remoteHash
         for (key,propertyName) in getAllPropertyMappings() {
@@ -270,17 +270,6 @@ class BitweaverRestObject: NSObject {
             }
         }
         return remoteStore
-    }
-
-    func remoteToJson() -> String {
-        let jsonStore = self.remoteToHash()
-        var jsonString = "{"
-        for (key,value) in jsonStore {
-            jsonString += "\""+key+"\":\""+value+"\",\n"
-        }
-        jsonString += "}"
-        
-        return jsonString
     }
 
     func completeStoreRemote( newProduct: BitweaverRestObject, isSuccess: Bool, message: String ) -> Void {
@@ -403,7 +392,7 @@ class BitweaverRestObject: NSObject {
     func storeLocal(completion: ((BitweaverRestObject,Bool,String) -> Void)? = nil ) {
         if let fileURL = contentFile {
             var errorMessage = ""
-            let jsonString = remoteToJson()
+            let jsonString = toJson()
             do {
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
                 completion?(self,true,errorMessage)
@@ -417,7 +406,7 @@ class BitweaverRestObject: NSObject {
         }
         if let fileURL = localFile {
             var errorMessage = ""
-            let jsonString = localToJson()
+            let jsonString = toJson()
             do {
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
                 completion?(self,true,errorMessage)
