@@ -7,6 +7,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="BitweaverLoginViewController" customModule="PrestoPhoto" customModuleProvider="target">
             <connections>
+                <outlet property="connectProgress" destination="7LH-zB-yN2" id="S3r-Ph-GXh"/>
                 <outlet property="emailInput" destination="B0M-Np-3eH" id="eqV-rh-8Dy"/>
                 <outlet property="feedbackLabel" destination="Ujs-h9-uQP" id="dE3-Vd-45h"/>
                 <outlet property="passwordInput" destination="fat-HP-UTp" id="Lzb-bJ-hNC"/>
@@ -17,7 +18,7 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="Hz6-mo-xeY">
-            <rect key="frame" x="0.0" y="0.0" width="520" height="240"/>
+            <rect key="frame" x="0.0" y="0.0" width="539" height="240"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2eH-tt-woS">
@@ -65,7 +66,7 @@
                     </textFieldCell>
                 </textField>
                 <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ja8-q4-x2y">
-                    <rect key="frame" x="423" y="79" width="82" height="32"/>
+                    <rect key="frame" x="402" y="79" width="103" height="32"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <buttonCell key="cell" type="push" title="Sign In" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ofT-He-ArR">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -73,20 +74,6 @@
                     </buttonCell>
                     <connections>
                         <action selector="signin:" target="-2" id="e7b-Q1-ZoI"/>
-                    </connections>
-                </button>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hKp-Cz-lFr">
-                    <rect key="frame" x="341" y="79" width="82" height="32"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Sap-ko-FwN">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                        <string key="keyEquivalent" base64-UTF8="YES">
-Gw
-</string>
-                    </buttonCell>
-                    <connections>
-                        <action selector="cancel:" target="-2" id="DuO-RW-53S"/>
                     </connections>
                 </button>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CLk-ae-cSE">
@@ -130,12 +117,30 @@ Gw
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <progressIndicator wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="7LH-zB-yN2">
+                    <rect key="frame" x="476" y="89" width="16" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                </progressIndicator>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hKp-Cz-lFr">
+                    <rect key="frame" x="325" y="79" width="82" height="32"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Sap-ko-FwN">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                        <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                    </buttonCell>
+                    <connections>
+                        <action selector="cancel:" target="-2" id="DuO-RW-53S"/>
+                    </connections>
+                </button>
             </subviews>
-            <point key="canvasLocation" x="-31" y="117"/>
+            <point key="canvasLocation" x="-21.5" y="117"/>
         </customView>
     </objects>
     <resources>
-        <image name="NSUser" width="128" height="128"/>
+        <image name="NSUser" width="32" height="32"/>
         <image name="icon_login" width="128" height="128"/>
     </resources>
 </document>

@@ -13,6 +13,7 @@ class BitweaverLoginViewController: BWViewController {
     @IBOutlet weak var passwordInput: NSSecureTextField!
     @IBOutlet weak var feedbackLabel: NSTextField!
     @IBOutlet weak var signinButton: NSButton!
+    @IBOutlet weak var connectProgress: NSProgressIndicator!
     
     
     @IBAction func cancel(_ sender: Any) {
@@ -21,6 +22,7 @@ class BitweaverLoginViewController: BWViewController {
     
     @IBAction func signin(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
+            connectProgress.startAnimation(sender)
             gBitUser.authenticate( authLogin:emailInput.stringValue, authPassword: passwordInput.stringValue, handler:self)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to www.prestophoto.com"
@@ -53,6 +55,7 @@ class BitweaverLoginViewController: BWViewController {
     }
     
     override func viewDidLoad() {
+    connectProgress.stopAnimation(nil)
         signinButton.keyEquivalent = "\r";
         signinButton.isHighlighted = true
     }
