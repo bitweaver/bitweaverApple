@@ -359,7 +359,7 @@ class BitweaverRestObject: NSObject {
                                             self.load(fromJson: remoteHash)
                                             self.dirty = false
                                         }
-                                    NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
+                                        NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
                                         ret = true
                                     case 400 ... 499:
                                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
