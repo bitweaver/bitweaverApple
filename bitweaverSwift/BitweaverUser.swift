@@ -223,7 +223,11 @@ class BitweaverUser: BitweaverRestObject {
         for (key,_) in properties {
             if let varName = properties[key] {
                 if responds(to: NSSelectorFromString(varName)) {
-                    setValue(nil, forKey: varName )
+                    if varName == "contentUuid" {
+                        setValue(UUID(), forKey: varName )
+                    } else {
+                        setValue(nil, forKey: varName )
+                    }
                 }
             }
         }
