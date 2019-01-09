@@ -40,7 +40,7 @@ class BitcommerceProduct: BitweaverRestObject {
     }
 
     override func remoteUrl() -> String {
-       return gBitSystem.apiBaseUri+"products/"+(self.productId?.stringValue ?? self.contentUuid.uuidString);
+       return gBitSystem.apiBaseUri+"products/"+self.contentUuid.uuidString;
     }
     
     override func getAllPropertyMappings() -> [String : String] {
