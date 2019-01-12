@@ -81,7 +81,6 @@ class BitcommerceProduct: BitweaverRestObject {
     
     private func getViewController(_ type:String) -> BWViewController {
         let controllerClass:String = self.productTypeClass+type+"ViewController";
-        print(controllerClass)
         if let ret: BitcommerceProductViewController.Type = NSClassFromString( Bundle.main.infoDictionary!["CFBundleName"] as! String + "." + controllerClass ) as? BitcommerceProductViewController.Type {
             return ret.init()
         } else {
@@ -139,7 +138,6 @@ class BitcommerceProduct: BitweaverRestObject {
                 if resourceValues.isDirectory! {
                     let dirUuid = fileURL.lastPathComponent
                     let jsonUrl = fileURL.appendingPathComponent("content.json")
-                    print( jsonUrl )
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
@@ -149,7 +147,6 @@ class BitcommerceProduct: BitweaverRestObject {
                                     newProduct.contentUuid = localUuid
                                 }
                                 productList[dirUuid] = newProduct
-                                print( "Loaded: " + dirUuid.description)
                                 break
                             }
                         }

@@ -35,7 +35,11 @@ class BitweaverRestObject: NSObject {
     var uploadPercentage: Double = 0.0
     var uploadMessage = ""
 
-    var isUploading:Bool { get { return uploadStatus.rawValue > HTTPStatusCode.none.rawValue && uploadStatus.rawValue < HTTPStatusCode.ok.rawValue } }
+    var isUploading:Bool {
+        get {
+            return uploadStatus.rawValue > HTTPStatusCode.none.rawValue && uploadStatus.rawValue < HTTPStatusCode.ok.rawValue
+        }
+    }
     
     var remoteHash: [String:String] = [:]
     var localHash: [String:String] = [:]
@@ -121,7 +125,7 @@ class BitweaverRestObject: NSObject {
     func setProperty(_ propertyName:String,_ propertyValue:Any ) {
         if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
             if #available(OSX 10.12, *) {
-                os_log( "%@ = %@", propertyName, stringValue )
+//                os_log( "%@ = %@", propertyName, stringValue )
             }
             if propertyName.hasSuffix("Date") {
                 setValue(stringValue.toDateISO8601(), forKey: propertyName )
@@ -196,7 +200,7 @@ class BitweaverRestObject: NSObject {
         let properties = getAllPropertyMappings()
         for (remoteKey,remoteValue) in remoteHash {
             if let propertyName = properties[remoteKey] {
-                NSLog( "load field %@=>%@", remoteKey, propertyName );
+//                NSLog( "load field %@=>%@", remoteKey, propertyName );
                 setProperty(propertyName, remoteValue)
             }
         }
@@ -353,24 +357,25 @@ class BitweaverRestObject: NSObject {
                             }
                             upload.responseJSON { response in
                                 if let statusCode = response.response?.statusCode {
-                                    switch statusCode {
-                                    case 200 ... 399:
-                                        if let remoteHash = response.result.value as? [String:Any] {
-                                            self.load(fromJson: remoteHash)
-                                            self.dirty = false
-                                        }
-                                        NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
-                                        ret = true
-                                    case 400 ... 499:
-                                        if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
-                                            print("Data: \(utf8Text)")
-                                        }
-                                        
-                                        errorMessage = gBitSystem.httpError( response:response, request:response.request )
-                                    default:
-                                        errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(statusCode), response.request?.url?.host ?? "")
-                                    }
                                     self.uploadStatus = HTTPStatusCode(rawValue: statusCode) ?? HTTPStatusCode.none
+                                    switch statusCode {
+                                        case 200 ... 399:
+                                            if let remoteHash = response.result.value as? [String:Any] {
+                                                self.load(fromJson: remoteHash)
+                                                self.storeLocal() // let's save the current live values - perhaps content_id has changed
+                                                self.dirty = false
+                                            }
+                                            NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
+                                            ret = true
+                                        case 400 ... 499:
+                                            if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
+                                                print("Data: \(utf8Text)")
+                                            }
+                                            
+                                            errorMessage = gBitSystem.httpError( response:response, request:response.request )
+                                        default:
+                                            errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(statusCode), response.request?.url?.host ?? "")
+                                    }
                                 }
                                 completion(self,ret,errorMessage)
                             }
