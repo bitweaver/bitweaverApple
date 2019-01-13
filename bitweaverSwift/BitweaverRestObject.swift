@@ -369,10 +369,10 @@ class BitweaverRestObject: NSObject {
                                             ret = true
                                         case 400 ... 499:
                                             if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
-                                                print("Data: \(utf8Text)")
+                                                errorMessage = utf8Text
+                                            } else {
+                                                errorMessage = gBitSystem.httpError( response:response, request:response.request )
                                             }
-                                            
-                                            errorMessage = gBitSystem.httpError( response:response, request:response.request )
                                         default:
                                             errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(statusCode), response.request?.url?.host ?? "")
                                     }
