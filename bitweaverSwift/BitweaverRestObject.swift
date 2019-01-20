@@ -18,17 +18,29 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var contentId: NSNumber?          /* Content ID created by remote system */
     @objc dynamic var userId: NSNumber?             /* User ID on the remote system that created the content */
     @objc dynamic var contentTypeGuid:String = ""   /* Title of the content */
-    @objc dynamic var title:String = ""             /* Title of the content */
+    @objc dynamic var title:String?             /* Title of the content */
     @objc dynamic var displayUri:URL!               /* URL of the */
     @objc dynamic var createdDate:Date?
     @objc dynamic var lastModifiedDate:Date?
 
-    var defaultTitle:String {
+    var displayTitle:String {
         get {
-            return "Untitled "+contentTypeGuid
+            return title ?? defaultTitle
         }
     }
 
+    
+    var defaultTitle:String {
+        get {
+            return "Untitled "+defaultName
+        }
+    }
+
+    var defaultName: String {
+        get {
+            return contentTypeGuid
+        }
+    }
     
     var dirty:Bool = false // Has local modifications
     var uploadStatus:HTTPStatusCode = HTTPStatusCode.none
@@ -318,7 +330,7 @@ class BitweaverRestObject: NSObject {
         return [:]
     }
     
-    func storeRemote(uploadFiles:Bool = false, completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
+    func storeRemote(uploadFiles:Bool = true, completion: @escaping (BitweaverRestObject,Bool,String) -> Void) {
         if !isUploading {
             startUpload()
             
