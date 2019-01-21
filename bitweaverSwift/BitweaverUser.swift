@@ -112,12 +112,12 @@ class BitweaverUser: BitweaverRestObject {
     func register(_ authLogin:String,_ authPassword:String, handler:BitweaverLoginViewController) {
 
         // Assume login was email field, update here for registration
-        self.email = authLogin
+        email = authLogin
 
         var parameters: [String:String] = [:]
         let properties = getSendablePropertyMappings()
         for (key,name) in properties {
-            parameters[key] = self.value(forKey:name) as? String
+            parameters[key] = value(forKey:name) as? String
         }
         parameters["email"] = authLogin
         parameters["password"] = authPassword
@@ -131,7 +131,7 @@ class BitweaverUser: BitweaverRestObject {
                 encoding: URLEncoding.default,
                 headers:headers)
             .validate(statusCode: 200..<500)
-            .responseJSON { response in
+            .responseJSON { [weak self] response in
                 
                 var ret = false
                 var errorMessage: String = ""
@@ -140,7 +140,7 @@ class BitweaverUser: BitweaverRestObject {
                     switch statusCode {
                         case 200 ... 399:
                             ret = true
-                            self.authenticate(authLogin: authLogin, authPassword: authPassword, handler: handler)
+                            self?.authenticate(authLogin: authLogin, authPassword: authPassword, handler: handler)
                         case 400 ... 499:
                             if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                                 print("Data: \(utf8Text)")
@@ -168,7 +168,7 @@ class BitweaverUser: BitweaverRestObject {
                           encoding: URLEncoding.default,
                           headers:headers)
             .validate(statusCode: 200..<500)
-            .responseJSON { response in
+            .responseJSON { [weak self] response in
                 
                 var ret = false
                 var errorMessage: String = ""
@@ -194,7 +194,7 @@ class BitweaverUser: BitweaverRestObject {
                         }
 
                         if let properties = response.result.value as? [String:Any] {
-                            self.load(fromJson:properties)
+                            self?.load(fromJson:properties)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
                         }

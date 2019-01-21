@@ -117,8 +117,6 @@ extension String {
 
 extension URL {
     func mimeType() -> String {
-        let pathExtension = self.pathExtension
-        
         if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue() {
             if let mimetype = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
                 return mimetype as String
@@ -141,7 +139,7 @@ extension Date {
 
 extension BWViewController {
     func clearChildren() {
-        self.children.forEach({
+        children.forEach({
             $0.view.removeFromSuperview()
             $0.removeFromParent()
         })
@@ -150,7 +148,7 @@ extension BWViewController {
 
 extension BWView {
     func clearChildren() {
-        self.subviews.forEach({
+        subviews.forEach({
             $0.removeFromSuperview()
         })
     }
@@ -170,7 +168,7 @@ extension BWImage {
     }
     @discardableResult
     func saveAsPNG(url: URL) -> Bool {
-        guard let tiffData = self.tiffRepresentation else {
+        guard let tiffData = tiffRepresentation else {
             print("failed to get tiffRepresentation. url: \(url)")
             return false
         }
@@ -189,7 +187,7 @@ extension BWImage {
     }
     @discardableResult
     func toDataJPG() -> Data? {
-        guard let tiffData = self.tiffRepresentation else {
+        guard let tiffData = tiffRepresentation else {
             print("failed to get tiffRepresentation.")
             return nil
         }
@@ -203,7 +201,7 @@ extension BWImage {
     @discardableResult
     func saveAsJPG(url: URL) -> Bool {
         do {
-            guard let imageData = self.toDataJPG() else {return false}
+            guard let imageData = toDataJPG() else {return false}
             try imageData.write(to: url)
             return true
         } catch {

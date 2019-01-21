@@ -40,7 +40,7 @@ class BitcommerceProduct: BitweaverRestObject {
     }
 
     override func remoteUrl() -> String {
-       return gBitSystem.apiBaseUri+"products/"+self.contentUuid.uuidString;
+       return gBitSystem.apiBaseUri+"products/"+contentUuid.uuidString;
     }
     
     override func getAllPropertyMappings() -> [String : String] {
@@ -80,7 +80,7 @@ class BitcommerceProduct: BitweaverRestObject {
     }
     
     private func getViewController(_ type:String) -> BWViewController {
-        let controllerClass:String = self.productTypeClass+type+"ViewController";
+        let controllerClass:String = productTypeClass+type+"ViewController";
         if let ret: BitcommerceProductViewController.Type = NSClassFromString( Bundle.main.infoDictionary!["CFBundleName"] as! String + "." + controllerClass ) as? BitcommerceProductViewController.Type {
             return ret.init()
         } else {
@@ -142,7 +142,7 @@ class BitcommerceProduct: BitweaverRestObject {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
                         if let remoteHash = jsonResult as? Dictionary<String, String> {
-                            if let newProduct = self.newProduct( remoteHash ) {
+                            if let newProduct = newProduct( remoteHash ) {
                                 if let localUuid = UUID.init(uuidString: dirUuid) {
                                     newProduct.contentUuid = localUuid
                                 }
@@ -170,13 +170,13 @@ class BitcommerceProduct: BitweaverRestObject {
                               encoding: URLEncoding.default,
                               headers:headers)
                 .validate()
-                .responseJSON { response in
+                .responseJSON { [weak self] response in
                     switch response.result {
                     case .success :
                         if let jsonList = response.result.value as? [String: [String:Any]] {
                             var productList = Dictionary<String, BitcommerceProduct>()
                             for (_,remoteHash) in jsonList as [String: [String:Any]] {
-                                if let newProduct = self.newProduct( remoteHash ) {
+                                if let newProduct = self?.newProduct( remoteHash ) {
                                     newProduct.cacheLocal()
                                     productList[newProduct.contentUuid.uuidString] = newProduct
                                 }
