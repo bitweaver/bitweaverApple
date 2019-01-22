@@ -108,7 +108,7 @@
                         <action selector="register:" target="-2" id="9Uh-PT-O5c"/>
                     </connections>
                 </button>
-                <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ujs-h9-uQP">
+                <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ujs-h9-uQP">
                     <rect key="frame" x="23" y="0.0" width="406" height="78"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" id="NJy-CQ-Kp3">
