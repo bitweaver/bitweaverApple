@@ -36,7 +36,20 @@ extension BWViewController {
         alert.addButton(withTitle: "Cancel")
         return alert.runModal() == .alertFirstButtonReturn
         #endif
+    }
 
+    func unloadViewController( viewController: BWViewController? ) {
+        viewController?.view.viewWillMove(toWindow: nil)
+        viewController?.view.removeFromSuperview()
+        viewController?.removeFromParent()
+    }
+    
+    func handle(error: Error) {
+        // You should add some real error handling code.
+        print(error)
+        DispatchQueue.main.async {
+            NSAlert(error: error).runModal()
+        }
     }
 }
 
