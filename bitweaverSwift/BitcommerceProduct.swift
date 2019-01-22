@@ -18,12 +18,12 @@ class BitcommerceProduct: BitweaverRestObject {
     @objc dynamic var productModel: String = ""
     @objc dynamic var productDefaultIcon: String = ""
     var enabled: [Bool] = []
-    var images: [String:String] = [:]
+    var images: [String: String] = [:]
 
     override init() {
         super.init()
     }
-    
+
     override func initProperties() {
         super.initProperties()
         contentTypeGuid = "bitproduct"
@@ -31,37 +31,37 @@ class BitcommerceProduct: BitweaverRestObject {
     }
 
     func getRemoteTypeClass() -> String {
-        return NSStringFromClass(type(of:self))
+        return NSStringFromClass(type(of: self))
     }
-    
-    convenience init(fromJson hash: [String:Any]) {
+
+    convenience init(fromJson hash: [String: Any]) {
         self.init()
         load(fromJson: hash)
     }
 
     override func remoteUrl() -> String {
-       return gBitSystem.apiBaseUri+"products/"+contentUuid.uuidString;
+       return gBitSystem.apiBaseUri+"products/"+contentUuid.uuidString
     }
-    
-    override func getAllPropertyMappings() -> [String : String] {
+
+    override func getAllPropertyMappings() -> [String: String] {
         var mappings = [
-            "product_id" : "productId",
-            "product_model" : "productModel",
-            "product_type_name" : "productTypeName",
-            "product_type_icon" : "productDefaultIcon"
+            "product_id": "productId",
+            "product_model": "productModel",
+            "product_type_name": "productTypeName",
+            "product_type_icon": "productDefaultIcon"
         ]
 
         for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
         return mappings
     }
 
-    override func load(fromJson remoteHash: [String:Any]) {
+    override func load(fromJson remoteHash: [String: Any]) {
         super.load(fromJson: remoteHash)
     }
-    
-    override func getSendablePropertyMappings() -> [String : String] {
+
+    override func getSendablePropertyMappings() -> [String: String] {
         var mappings = [
-            "product_type_class" : "productTypeClass"
+            "product_type_class": "productTypeClass"
         ]
         for (k, v) in super.getSendablePropertyMappings() { mappings[k] = v }
         return mappings
@@ -78,32 +78,33 @@ class BitcommerceProduct: BitweaverRestObject {
     func getPreviewViewController() -> BWViewController {
         return getViewController("Preview")
     }
-    
-    private func getViewController(_ type:String) -> BWViewController {
-        let controllerClass:String = productTypeClass+type+"ViewController";
-        if let ret: BitcommerceProductViewController.Type = NSClassFromString( Bundle.main.infoDictionary!["CFBundleName"] as! String + "." + controllerClass ) as? BitcommerceProductViewController.Type {
+
+    private func getViewController(_ type: String) -> BWViewController {
+        let controllerClass: String = productTypeClass+type+"ViewController"
+        if let bundleName = Bundle.main.infoDictionary!["CFBundleName"] as? String,
+           let ret: BitcommerceProductViewController.Type = NSClassFromString( bundleName + "." + controllerClass ) as? BitcommerceProductViewController.Type {
             return ret.init()
         } else {
             return BitcommerceProductViewController.init()
         }
     }
-    
+
     func getTypeImageDefault() -> NSImage {
         return BWImage.init(named: "NSAdvanced")!
     }
-    
+
     func getTypeImage() -> BWImage {
-        var ret:BWImage?
+        var ret: BWImage?
         if let defaultImage = remoteHash["product_type_icon"] {
             let imageUrl = URL.init(fileURLWithPath: defaultImage)
-            ret = NSImage.init(named:imageUrl.deletingPathExtension().lastPathComponent) ?? nil
+            ret = NSImage.init(named: imageUrl.deletingPathExtension().lastPathComponent) ?? nil
         }
         return ret ?? getTypeImageDefault()
     }
-    
-    func newProduct(_ remoteHash:[String:Any] ) -> BitcommerceProduct? {
+
+    func newProduct(_ remoteHash: [String: Any] ) -> BitcommerceProduct? {
         // default is type of class invoked
-        var classNames:[String] = [NSStringFromClass(type(of:self))]
+        var classNames: [String] = [NSStringFromClass(type(of: self))]
         if let productClass = remoteHash["product_type_class"] as? String {
             // will attempt to create product of specific type listed
             classNames.insert(productClass, at: 0)
@@ -115,23 +116,23 @@ class BitcommerceProduct: BitweaverRestObject {
         }
         return nil
     }
-    
-    func getList( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
-        loadLocal( completion:completion )
-        loadRemote( completion:completion )
+
+    func getList( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
+        loadLocal( completion: completion )
+        loadRemote( completion: completion )
     }
 
-    func loadLocal( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
+    func loadLocal( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
         let fileManager = FileManager.default
-        let resourceKeys : [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
+        let resourceKeys: [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
         let enumerator = FileManager.default.enumerator(at: localProjectsUrl!, includingPropertiesForKeys: resourceKeys,
-                                                        options: [.skipsHiddenFiles,.skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
+                                                        options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants], errorHandler: { (url, error) -> Bool in
                                                             print("directoryEnumerator error at \(url): ", error)
                                                             return true
         })!
-        
-        var productList:Dictionary<String, BitcommerceProduct> = [:]
-        
+
+        var productList: [String: BitcommerceProduct] = [:]
+
         for case let fileURL as URL in enumerator {
             do {
                 let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
@@ -141,7 +142,7 @@ class BitcommerceProduct: BitweaverRestObject {
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                        if let remoteHash = jsonResult as? Dictionary<String, String> {
+                        if let remoteHash = jsonResult as? [String: String] {
                             if let newProduct = newProduct( remoteHash ) {
                                 if let localUuid = UUID.init(uuidString: dirUuid) {
                                     newProduct.contentUuid = localUuid
@@ -160,22 +161,22 @@ class BitcommerceProduct: BitweaverRestObject {
         // Send a notification event user has just logged in.
         NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
     }
-    
-    func loadRemote( completion: @escaping (Dictionary<String, BitcommerceProduct>) -> Void ) {
+
+    func loadRemote( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
         if BitweaverUser.active.isAuthenticated() {
             let headers = gBitSystem.httpHeaders()
             Alamofire.request(gBitSystem.apiBaseUri+"products/list",
                               method: .get,
                               parameters: nil,
                               encoding: URLEncoding.default,
-                              headers:headers)
+                              headers: headers)
                 .validate()
                 .responseJSON { [weak self] response in
                     switch response.result {
                     case .success :
-                        if let jsonList = response.result.value as? [String: [String:Any]] {
-                            var productList = Dictionary<String, BitcommerceProduct>()
-                            for (_,remoteHash) in jsonList as [String: [String:Any]] {
+                        if let jsonList = response.result.value as? [String: [String: Any]] {
+                            var productList = [String: BitcommerceProduct]()
+                            for (_, remoteHash) in jsonList as [String: [String: Any]] {
                                 if let newProduct = self?.newProduct( remoteHash ) {
                                     newProduct.cacheLocal()
                                     productList[newProduct.contentUuid.uuidString] = newProduct

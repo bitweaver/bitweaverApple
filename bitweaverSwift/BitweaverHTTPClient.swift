@@ -11,18 +11,20 @@ let gBitweaverHTTPClient = BitweaverHTTPClient.shared
 
 class BitweaverHTTPClient: AFHTTPClient {
     var apiBaseUri: String = ""
-    
+
     static let shared = BitweaverHTTPClient()
 
     override private init() {
-        apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_URI") as! String
-        super.init(baseURL:URL(string: apiBaseUri))
+        if let bundleApiUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_URI") as? String {
+            apiBaseUri = bundleApiUri
+        }
+        super.init(baseURL: URL(string: apiBaseUri))
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func request( withPath: String?) -> NSMutableURLRequest? {
         setAuthorizationHeaderWithUsername(APPDELEGATE.authLogin, password: APPDELEGATE.authPassword)
 
@@ -38,10 +40,10 @@ class BitweaverHTTPClient: AFHTTPClient {
         }
     }
 
-    func errorMessage(withResponse response: HTTPURLResponse, urlRequest request: URLRequest?, json JSON: [String : Any]) -> String? {
+    func errorMessage(withResponse response: HTTPURLResponse, urlRequest request: URLRequest?, json JSON: [String: Any]) -> String? {
 
         var errorMessage = ""
-        if( JSON.count > 0 ) {
+        if JSON.count > 0 {
             for key: String in (JSON.keys) {
                 if let aKey = JSON[key] {
                     errorMessage += "\(aKey)\n"
@@ -63,4 +65,3 @@ class BitweaverHTTPClient: AFHTTPClient {
         return nil
     }
 }
-

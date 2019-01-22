@@ -23,7 +23,7 @@ class BitweaverAppDelegate: UIResponder, UIApplicationDelegate {
     var authLogin = ""
     var authPassword = ""
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]? = nil) -> Bool {
         // Override point for customization after application launch.
         if UIDevice.current.userInterfaceIdiom == .pad {
             //        UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
@@ -31,7 +31,9 @@ class BitweaverAppDelegate: UIResponder, UIApplicationDelegate {
             //        splitViewController.delegate = (id)navigationController.topViewController;
 
             // Setup URI used for all REST calls
-            apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_PKG_URI") as! String 
+            if let bundleApiUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_URI") as? String {
+                apiBaseUri = bundleApiUri
+            }
 
             user = BitweaverUser()
         }

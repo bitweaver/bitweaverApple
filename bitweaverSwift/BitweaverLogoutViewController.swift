@@ -14,7 +14,7 @@ class BitweaverLogoutViewController: BWViewController {
     @IBOutlet weak var userImage: NSImageView!
     @IBOutlet weak var email: NSTextField!
     @IBOutlet weak var registeredDate: NSTextField!
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do view setup here.
@@ -22,17 +22,17 @@ class BitweaverLogoutViewController: BWViewController {
         email.stringValue = gBitUser.email ?? ""
         registeredDate.stringValue = "Registered "+(gBitUser.registrationDate?.longString ?? "")
     }
-    
+
     @IBAction func cancel(_ sender: Any) {
         dismiss(nil)
     }
-    
+
     @IBAction func logout(_ sender: Any) {
         let completion: () -> Void = {
             self.dismiss(nil)
         }
 
-        gBitUser.logout(completion:completion)
+        gBitUser.logout(completion: completion)
         dismiss(nil)
     }
 }

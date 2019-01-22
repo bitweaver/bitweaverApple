@@ -43,7 +43,7 @@ extension BWViewController {
         viewController?.view.removeFromSuperview()
         viewController?.removeFromParent()
     }
-    
+
     func handle(error: Error) {
         // You should add some real error handling code.
         print(error)
@@ -60,12 +60,12 @@ extension NSObject {
 }
 
 public extension Int {
-    
+
     /// Returns a random Int point number between 0 and Int.max.
     public static var random: Int {
         return Int.random(n: Int.max)
     }
-    
+
     /// Random integer between 0 and n-1.
     ///
     /// - Parameter n:  Interval max
@@ -73,7 +73,7 @@ public extension Int {
     public static func random(n: Int) -> Int {
         return Int(arc4random_uniform(UInt32(n)))
     }
-    
+
     ///  Random integer between min and max
     ///
     /// - Parameters:
@@ -82,17 +82,17 @@ public extension Int {
     /// - Returns:  Returns a random Int point number between 0 and n max
     public static func random(min: Int, max: Int) -> Int {
         return Int.random(n: max - min + 1) + min
-        
+
     }
 }
 
 extension Double {
-    
+
     /// Returns a random floating point number between 0.0 and 1.0, inclusive.
     public static var random: Double {
         return Double(arc4random()) / 0xFFFFFFFF
     }
-    
+
     /// Random double between 0 and n-1.
     ///
     /// - Parameter n:  Interval max
@@ -103,12 +103,12 @@ extension Double {
 }
 
 extension Float {
-    
+
     /// Returns a random floating point number between 0.0 and 1.0, inclusive.
     public static var random: Float {
         return Float(arc4random()) / 0xFFFFFFFF
     }
-    
+
     /// Random float between 0 and n-1.
     ///
     /// - Parameter n:  Interval max
@@ -149,7 +149,6 @@ extension Date {
     }
 }
 
-
 extension BWViewController {
     func clearChildren() {
         children.forEach({
@@ -167,14 +166,10 @@ extension BWView {
     }
 }
 
-
-
-
-
 extension BWImage {
     var cgImage: CGImage? {
         var proposedRect = CGRect(origin: .zero, size: size)
-        
+
         return cgImage(forProposedRect: &proposedRect,
                        context: nil,
                        hints: nil)
@@ -225,43 +220,42 @@ extension BWImage {
 }
 
 extension BWColor {
-    convenience init(hexString:String) {
-        let hexString:String = hexString.trimmingCharacters(in:CharacterSet.whitespacesAndNewlines)
+    convenience init(hexString: String) {
+        let hexString: String = hexString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         let scanner = Scanner(string: hexString)
-        
-        if (hexString.hasPrefix("#")) {
+
+        if hexString.hasPrefix("#") {
             scanner.scanLocation = 1
         }
-        
-        var color:UInt32 = 0
+
+        var color: UInt32 = 0
         scanner.scanHexInt32(&color)
-        
+
         let mask = 0x000000FF
         let r = Int(color >> 16) & mask
         let g = Int(color >> 8) & mask
         let b = Int(color) & mask
-        
+
         let red   = CGFloat(r) / 255.0
         let green = CGFloat(g) / 255.0
         let blue  = CGFloat(b) / 255.0
-        
-        self.init(red:red, green:green, blue:blue, alpha:1)
+
+        self.init(red: red, green: green, blue: blue, alpha: 1)
     }
-    
+
     func toHexString() -> String {
-        var r:CGFloat = 0
-        var g:CGFloat = 0
-        var b:CGFloat = 0
-        var a:CGFloat = 0
-        
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+
         getRed(&r, green: &g, blue: &b, alpha: &a)
-        
-        let rgb:Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
-        
-        return String(format:"#%06x", rgb)
+
+        let rgb: Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
+
+        return String(format: "#%06x", rgb)
     }
 }
-
 
 enum HTTPStatusCode: Int {
     case none = 0
