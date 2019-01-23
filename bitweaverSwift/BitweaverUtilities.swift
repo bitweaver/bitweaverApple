@@ -38,9 +38,13 @@ extension BWViewController {
         #endif
     }
 
+    func unloadView( view: BWView? ) {
+        view?.viewWillMove(toWindow: nil)
+        view?.removeFromSuperview()
+    }
+    
     func unloadViewController( viewController: BWViewController? ) {
-        viewController?.view.viewWillMove(toWindow: nil)
-        viewController?.view.removeFromSuperview()
+        unloadView(view: viewController?.view)
         viewController?.removeFromParent()
     }
 
