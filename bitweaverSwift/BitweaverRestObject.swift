@@ -82,15 +82,15 @@ class BitweaverRestObject: NSObject {
         return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0")
     }
 
-    var contentFile: URL? {
-        let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath
-        return contentDir?.appendingPathComponent("content.json")
+    func getFile(_ fileName: String) -> URL? {
+        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
+            return contentDir.appendingPathComponent(fileName)
+        }
+        return nil
     }
-
-    var localFile: URL? {
-        let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath
-        return contentDir?.appendingPathComponent("local.json")
-    }
+    
+    var contentFile: URL? { return getFile("content.json") }
+    var localFile: URL? { return getFile("local.json") }
 
     func getAllPropertyMappings() -> [String: String] {
         var mappings = [
@@ -157,16 +157,10 @@ class BitweaverRestObject: NSObject {
         return UUID().uuidString
     }
 
-    func createDirectory(_ directory: String) -> Bool {
+    func createDirectory(_ directory: URL) -> Bool {
         var ret = true
-
-        let fileManager = FileManager.default
-
-        // Create the root bookPath
         do {
-            if !(fileManager.fileExists(atPath: directory )) {
-                try fileManager.createDirectory(atPath: directory, withIntermediateDirectories: true, attributes: nil)
-            }
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         } catch {
             ret = false
             print("\(error)")
