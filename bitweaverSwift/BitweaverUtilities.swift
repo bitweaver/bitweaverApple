@@ -223,6 +223,14 @@ extension BWImage {
     }
 }
 
+extension CGImage {
+    func saveAsJPG(url: URL) -> Bool {
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else { return false }
+        CGImageDestinationAddImage(destination, self, nil)
+        return CGImageDestinationFinalize(destination)
+    }
+}
+
 extension BWColor {
     convenience init(hexString: String) {
         let hexString: String = hexString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
