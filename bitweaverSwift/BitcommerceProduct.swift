@@ -20,6 +20,9 @@ class BitcommerceProduct: BitweaverRestObject {
     var enabled: [Bool] = []
     var images: [String: String] = [:]
 
+    // Prevent multiple
+    static var active: BitcommerceProduct?
+
     override init() {
         super.init()
     }
