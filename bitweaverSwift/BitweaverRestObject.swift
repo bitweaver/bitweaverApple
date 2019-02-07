@@ -19,7 +19,7 @@ class BitweaverRestObject: NSObject {
     @objc dynamic var userId: NSNumber?             /* User ID on the remote system that created the content */
     @objc dynamic var contentTypeGuid: String = ""   /* Title of the content */
     @objc dynamic var title: String?             /* Title of the content */
-    @objc dynamic var displayUri: URL!               /* URL of the */
+    @objc dynamic var displayUri: URL?               /* URL of the */
     @objc dynamic var createdDate: Date?
     @objc dynamic var lastModifiedDate: Date?
 
