@@ -227,18 +227,8 @@ class BitweaverRestObject: NSObject {
         return ret
     }
 
-    func localToHash() -> [String: String] {
-        var remoteStore = remoteHash
-        for (key, propertyName) in getAllPropertyMappings() {
-            if let propString = getProperty(propertyName) {
-                remoteStore[key] = propString
-            }
-        }
-        return remoteStore
-    }
-
     func toJson() -> String {
-        let jsonStore = self.remoteToHash()
+        let jsonStore = self.toHash()
         var jsonString = "{"
         for (key, value) in jsonStore {
             jsonString += "\""+key+"\":\""+value+"\",\n"
@@ -248,7 +238,7 @@ class BitweaverRestObject: NSObject {
         return jsonString
     }
 
-    func remoteToHash() -> [String: String] {
+    func toHash() -> [String: String] {
         var remoteStore = remoteHash
         for (key, propertyName) in getAllPropertyMappings() {
             if let propString = getProperty(propertyName) {
@@ -309,7 +299,7 @@ class BitweaverRestObject: NSObject {
 
             Alamofire.upload(
                 multipartFormData: { multipartFormData in
-                    let exportHash = self.remoteToHash()
+                    let exportHash = self.toHash()
                     for (key, value) in exportHash {
                         multipartFormData.append(value.data(using: .utf8)!, withName: key)
                     }
