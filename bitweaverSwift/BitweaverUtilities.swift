@@ -162,6 +162,16 @@ extension BWViewController {
     }
 }
 
+extension NSTabView {
+    func selectedTabViewItemIndex() -> Int {
+        var ret = 0
+        if let selectedTabViewItem = selectedTabViewItem {
+            ret = indexOfTabViewItem(selectedTabViewItem)
+        }
+        return ret
+    }
+}
+
 extension BWView {
     func clearChildren() {
         subviews.forEach({
