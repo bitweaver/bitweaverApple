@@ -177,6 +177,10 @@ extension NSTabView {
     }
 }
 
+extension NSSize {
+    var ratio: CGFloat { return width / height }
+}
+
 extension BWView {
     func clearChildren() {
         subviews.forEach({
