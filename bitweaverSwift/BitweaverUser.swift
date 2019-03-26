@@ -96,12 +96,14 @@ class BitweaverUser: BitweaverRestObject {
         return userId != nil
     }
 
+    /*
     func verifyAuthentication() -> Bool {
         if !isAuthenticated() {
             gBitSystem.showAuthenticationDialog()
         }
         return isAuthenticated()
     }
+    */
 
     func register(_ authLogin: String, _ authPassword: String, handler: BitweaverLoginViewController) {
 

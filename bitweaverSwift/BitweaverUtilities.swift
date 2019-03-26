@@ -66,7 +66,7 @@ extension NSObject {
 public extension Int {
 
     /// Returns a random Int point number between 0 and Int.max.
-    public static var random: Int {
+    static var random: Int {
         return Int.random(n: Int.max)
     }
 
@@ -74,7 +74,7 @@ public extension Int {
     ///
     /// - Parameter n:  Interval max
     /// - Returns:      Returns a random Int point number between 0 and n max
-    public static func random(n: Int) -> Int {
+    static func random(n: Int) -> Int {
         return Int(arc4random_uniform(UInt32(n)))
     }
 
@@ -84,7 +84,7 @@ public extension Int {
     ///   - min:    Interval minimun
     ///   - max:    Interval max
     /// - Returns:  Returns a random Int point number between 0 and n max
-    public static func random(min: Int, max: Int) -> Int {
+    static func random(min: Int, max: Int) -> Int {
         return Int.random(n: max - min + 1) + min
 
     }
@@ -115,7 +115,7 @@ extension Float {
 
     /// Returns a random floating point number between 0.0 and 1.0, inclusive.
     public static var random: Float {
-        return Float(arc4random()) / 0xFFFFFFFF
+        return Float(arc4random()) / Float.greatestFiniteMagnitude
     }
 
     /// Random float between 0 and n-1.
@@ -378,4 +378,3 @@ extension String {
         return html
     }
 }
-
