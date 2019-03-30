@@ -362,7 +362,7 @@ enum HTTPStatusCode: Int {
 extension NSAttributedString {
     var attributedString2Html: String? {
         do {
-            let htmlData = try self.data(from: NSMakeRange(0, self.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.html])
+            let htmlData = try self.data(from: NSRange( location: 0, length: self.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.html])
             return String.init(data: htmlData, encoding: String.Encoding.utf8)
         } catch {
             print("error:", error)
