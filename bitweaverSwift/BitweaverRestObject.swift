@@ -82,15 +82,15 @@ class BitweaverRestObject: NSObject {
         return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0")
     }
 
-    func getFile(_ fileName: String) -> URL? {
+    func getFile(for fileName: String) -> URL? {
         if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
             return contentDir.appendingPathComponent(fileName)
         }
         return nil
     }
     
-    var contentFile: URL? { return getFile("content.json") }
-    var localFile: URL? { return getFile("local.json") }
+    var contentFile: URL? { return getFile(for: "content.json") }
+    var localFile: URL? { return getFile(for: "local.json") }
 
     func getAllPropertyMappings() -> [String: String] {
         var mappings = [
