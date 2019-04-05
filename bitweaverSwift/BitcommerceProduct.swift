@@ -21,7 +21,7 @@ class BitcommerceProduct: BitweaverRestObject {
     var images: [String: String] = [:]
 
     // Prevent multiple
-    static var active: BitcommerceProduct?
+    static var active: BitcommerceProduct? { return gBitProduct }
 
     override init() {
         super.init()
@@ -198,3 +198,5 @@ class BitcommerceProduct: BitweaverRestObject {
         }
     }
 }
+
+var gBitProduct: BitcommerceProduct?
