@@ -39,6 +39,18 @@ class BitweaverRestObject: NSObject {
 
     var primaryId: String? { return contentId != nil ? contentId?.stringValue : contentUuid.uuidString }
 
+    var isRemote: Bool { return contentId != nil }
+    var isLocal: Bool { return contentId == nil }
+    
+    var localProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "local/"+contentTypeGuid ) }
+    private var localPath: URL? { return localProjectsUrl?.appendingPathComponent(contentUuid.uuidString) }
+    
+    var cacheProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"+contentTypeGuid ) }
+    private var cachePath: URL? { return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0") }
+    
+    var contentFile: URL? { return getFile(for: "content.json") }
+    var localFile: URL? { return getFile(for: "local.json") }
+    
     override init() {
         super.init()
         initProperties()
@@ -47,6 +59,13 @@ class BitweaverRestObject: NSObject {
     func initProperties() {
     }
 
+    func getFile(for fileName: String) -> URL? {
+        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
+            return contentDir.appendingPathComponent(fileName)
+        }
+        return nil
+    }
+    
     func remoteUrl() -> String {
         return gBitSystem.apiBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString)
     }
@@ -62,35 +81,6 @@ class BitweaverRestObject: NSObject {
         uploadStatus = HTTPStatusCode.clientClosedRequest
         NotificationCenter.default.post(name: NSNotification.Name("UploadingCancel"), object: self)
     }
-
-    var isRemote: Bool { return contentId != nil }
-    var isLocal: Bool { return contentId == nil }
-
-    var localProjectsUrl: URL? {
-        return BitweaverAppBase.dirForDataStorage( "local/"+contentTypeGuid )
-    }
-
-    var localPath: URL? {
-        return localProjectsUrl?.appendingPathComponent(contentUuid.uuidString)
-    }
-
-    var cacheProjectsUrl: URL? {
-        return BitweaverAppBase.dirForDataStorage( "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"+contentTypeGuid )
-    }
-
-    private var cachePath: URL? {
-        return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0")
-    }
-
-    func getFile(for fileName: String) -> URL? {
-        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
-            return contentDir.appendingPathComponent(fileName)
-        }
-        return nil
-    }
-    
-    var contentFile: URL? { return getFile(for: "content.json") }
-    var localFile: URL? { return getFile(for: "local.json") }
 
     func getAllPropertyMappings() -> [String: String] {
         var mappings = [
