@@ -136,7 +136,7 @@ extension String {
         return RFC3339DateFormatter.date(from: self)
     }
     
-    func verifyHexColor(default defaultColor:String) -> String {
+    func verifyHexColor(default defaultColor: String) -> String {
         return self.matches( "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})" ) ? self : defaultColor
     }
     
