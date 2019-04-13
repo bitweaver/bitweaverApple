@@ -45,8 +45,8 @@ class BitweaverRestObject: NSObject {
     var localProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "local/"+contentTypeGuid ) }
     private var localPath: URL? { return localProjectsUrl?.appendingPathComponent(contentUuid.uuidString) }
     
-    var cacheProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"+contentTypeGuid ) }
-    private var cachePath: URL? { return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0") }
+//    var cacheProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"+contentTypeGuid ) }
+//    private var cachePath: URL? { return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0") }
     
     var contentFile: URL? { return getFile(for: "content.json") }
     var localFile: URL? { return getFile(for: "local.json") }
@@ -60,7 +60,8 @@ class BitweaverRestObject: NSObject {
     }
 
     func getFile(for fileName: String) -> URL? {
-        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
+//        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
+        if let contentDir = localPath, createDirectory(contentDir) {
             return contentDir.appendingPathComponent(fileName)
         }
         return nil
@@ -238,6 +239,7 @@ class BitweaverRestObject: NSObject {
         return remoteStore
     }
 
+    /*
     func completeStoreRemote( newProduct: BitweaverRestObject, isSuccess: Bool, message: String ) {
         do {
             if isSuccess {
@@ -267,13 +269,14 @@ class BitweaverRestObject: NSObject {
         }
     }
 
-    func store(completion: @escaping (BitweaverRestObject, Bool, String) -> Void) {
+    func store(completion: @escaping (BitweaverRestObject, Bool, String) -> Void?) {
         if isRemote {
             storeRemote(completion: completion)
         } else {
             storeLocal(completion: completion)
         }
     }
+     */
 
     func getUploadFiles() -> [String: URL] {
         return [:]
@@ -356,6 +359,7 @@ class BitweaverRestObject: NSObject {
     }
 
     func storeLocal(completion: ((BitweaverRestObject, Bool, String) -> Void)? = nil ) {
+        
         if let fileURL = contentFile {
             var errorMessage = ""
             let jsonString = toJson()
