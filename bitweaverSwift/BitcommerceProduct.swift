@@ -20,6 +20,8 @@ class BitcommerceProduct: BitweaverRestObject {
     var enabled: [Bool] = []
     var images: [String: String] = [:]
 
+    override var remoteUri: String { return gBitSystem.apiBaseUri+"bookstore/"+(productId?.description ?? contentUuid.uuidString) }
+
     override init() {
         super.init()
     }
@@ -37,10 +39,6 @@ class BitcommerceProduct: BitweaverRestObject {
     convenience init(fromJson hash: [String: Any]) {
         self.init()
         load(fromJson: hash)
-    }
-
-    override func remoteUrl() -> String {
-       return gBitSystem.apiBaseUri+"products/"+contentUuid.uuidString
     }
 
     override func getAllPropertyMappings() -> [String: String] {

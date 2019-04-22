@@ -42,6 +42,13 @@ class BitweaverRestObject: NSObject {
     var isRemote: Bool { return contentId != nil }
     var isLocal: Bool { return contentId == nil }
     
+    var remoteUri: String { return gBitSystem.apiBaseUri+"?content_id="+(self.contentId?.stringValue ?? self.contentUuid.uuidString) }
+
+    var restBaseUri: String { return gBitSystem.apiBaseUri+"api/" }
+    var restUri: String { return restBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString) }
+
+    var remoteUrl: URL? { return URL.init(string: remoteUri) }
+
     var localProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "local/"+contentTypeGuid ) }
     private var localPath: URL? { return localProjectsUrl?.appendingPathComponent(contentUuid.uuidString) }
     
@@ -67,10 +74,6 @@ class BitweaverRestObject: NSObject {
         return nil
     }
     
-    func remoteUrl() -> String {
-        return gBitSystem.apiBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString)
-    }
-
     func startUpload() {
         uploadPercentage = 0.01
         uploadStatus = HTTPStatusCode.continue
@@ -288,8 +291,6 @@ class BitweaverRestObject: NSObject {
 
             NotificationCenter.default.post(name: NSNotification.Name("ContentUploading"), object: self)
 
-            let headers = gBitSystem.httpHeaders()
-
             Alamofire.upload(
                 multipartFormData: { multipartFormData in
                     let exportHash = self.toHash()
@@ -305,9 +306,9 @@ class BitweaverRestObject: NSObject {
 //                  multipartFormData.append(rainbowImageURL, withName: "rainbow")
                 },
                 usingThreshold: UInt64.init(),
-                to: remoteUrl(),
+                to: restUri,
                 method: .post,
-                headers: headers,
+                headers: gBitSystem.httpHeaders(),
                 encodingCompletion: { encodingResult in
                     var ret = false
                     var errorMessage = ""

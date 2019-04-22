@@ -20,6 +20,11 @@ import Alamofire
 
 let gBitUser = BitweaverUser.active
 
+protocol BitweaverUserDelegate: class {
+    func userDidLoginSuccess()
+    func userDidLoginFailure()
+}
+
 class BitweaverUser: BitweaverRestObject {
     @objc dynamic var email: String?
     @objc dynamic var login: String?
@@ -35,6 +40,8 @@ class BitweaverUser: BitweaverRestObject {
     @objc dynamic var firstName = ""
     @objc dynamic var lastName = ""
 
+    weak var userDelegtate: BitweaverUserDelegate?
+    
     var displayName: String {
         var ret = ""
         if isAuthenticated() {
@@ -158,7 +165,7 @@ class BitweaverUser: BitweaverRestObject {
         let base64Credentials = credentialData.base64EncodedString(options: [])
         headers["Authorization"] = "Basic \(base64Credentials)"
 
-        Alamofire.request(gBitSystem.apiBaseUri+"users/authenticate",
+        Alamofire.request(gBitSystem.apiBaseUri+"api/users/authenticate",
                           method: .get,
                           parameters: nil,
                           encoding: URLEncoding.default,
