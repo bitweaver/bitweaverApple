@@ -24,7 +24,7 @@ class BitweaverLoginViewController: BWViewController {
             connectProgress.startAnimation(sender)
             gBitUser.authenticate( authLogin: emailInput.stringValue, authPassword: passwordInput.stringValue, handler: self)
         } else {
-            feedbackLabel.stringValue = "Please enter your email and password used to login to www.prestophoto.com"
+            feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
     }
 
@@ -32,9 +32,13 @@ class BitweaverLoginViewController: BWViewController {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             gBitUser.register( emailInput.stringValue, passwordInput.stringValue, handler: self)
         } else {
-            feedbackLabel.stringValue = "Please enter your email and password used to login to www.prestophoto.com"
+            feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
 
+    }
+
+    override func viewDidAppear() {
+        view.window?.styleMask.remove(.resizable)
     }
 
     func authenticationResponse( success: Bool, message: String ) {

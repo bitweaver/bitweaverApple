@@ -35,4 +35,9 @@ class BitweaverLogoutViewController: BWViewController {
         gBitUser.logout(completion: completion)
         dismiss(nil)
     }
+
+    override func viewDidAppear() {
+        view.window?.styleMask.remove(.resizable)
+    }
+    
 }
