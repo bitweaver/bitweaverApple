@@ -143,6 +143,10 @@ extension String {
     func matches(_ regex: String) -> Bool {
         return self.range(of: regex, options: .regularExpression, range: nil, locale: nil) != nil
     }
+    
+    var humanizedAppUri: String {
+        return self.replacingOccurrences(of: "https://app.", with: "https://www.")
+    }
 }
 
 extension URL {
