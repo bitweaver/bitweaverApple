@@ -103,6 +103,13 @@ class BitweaverRestObject: NSObject {
         return mappings
     }
 
+    func getSendablePropertyMappings() -> [String: String] {
+        let mappings = [
+            "title": "title"
+        ]
+        return mappings
+    }
+    
     // users object property
     func setProperty(_ propertyName: String, _ propertyValue: Any ) {
         if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
@@ -138,13 +145,6 @@ class BitweaverRestObject: NSObject {
 
     func getField(_ name: String ) -> Any {
         return remoteHash[name] as Any
-    }
-
-    func getSendablePropertyMappings() -> [String: String] {
-        let mappings = [
-            "title": "title"
-        ]
-        return mappings
     }
 
     class func generateUuid() -> String? {

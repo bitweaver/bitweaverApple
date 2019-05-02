@@ -32,15 +32,15 @@ class BitcommerceProduct: BitweaverRestObject {
         productTypeClass = getRemoteTypeClass()
     }
 
-    func getRemoteTypeClass() -> String {
-        return NSStringFromClass(type(of: self))
-    }
-
     convenience init(fromJson hash: [String: Any]) {
         self.init()
         load(fromJson: hash)
     }
 
+    func getRemoteTypeClass() -> String {
+        return NSStringFromClass(type(of: self))
+    }
+    
     override func getAllPropertyMappings() -> [String: String] {
         var mappings = [
             "product_id": "productId",
@@ -51,10 +51,6 @@ class BitcommerceProduct: BitweaverRestObject {
 
         for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
         return mappings
-    }
-
-    override func load(fromJson remoteHash: [String: Any]) {
-        super.load(fromJson: remoteHash)
     }
 
     override func getSendablePropertyMappings() -> [String: String] {
