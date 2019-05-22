@@ -278,6 +278,26 @@ extension BWImage {
     }
 }
 
+extension CGPoint {
+    func scale(_ scaleSize: CGSize) -> CGPoint {
+        return CGPoint.init(x: self.x*scaleSize.width, y: self.y*scaleSize.height)
+    }
+    
+    func scale(_ scaleSize: CGFloat) -> CGPoint {
+        return CGPoint.init(x: self.x*scaleSize, y: self.y*scaleSize)
+    }
+}
+
+extension CGSize {
+    func scale(_ scaleSize: CGSize) -> CGSize {
+        return CGSize.init(width: self.width*scaleSize.width, height: self.height*scaleSize.height)
+    }
+    
+    func scale(_ scaleSize: CGFloat) -> CGSize {
+        return CGSize.init(width: self.width*scaleSize, height: self.height*scaleSize)
+    }
+}
+
 extension CGImage {
     func saveAsJPG(url: URL) -> Bool {
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypeJPEG, 1, nil) else { return false }
@@ -288,10 +308,13 @@ extension CGImage {
 
 extension BWColor {
     convenience init(hexString: String) {
-        let hexString: String = hexString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        let scanner = Scanner(string: hexString)
+        var checkedHex: String = hexString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        if checkedHex.isEmpty {
+            checkedHex = "#FFFFFF"
+        }
+        let scanner = Scanner(string: checkedHex)
 
-        if hexString.hasPrefix("#") {
+        if checkedHex.hasPrefix("#") {
             scanner.scanLocation = 1
         }
 
@@ -404,13 +427,5 @@ extension NSAttributedString {
             print("error:", error)
             return nil
         }
-    }
-}
-
-extension String {
-    func htmlAttributedString() -> NSAttributedString? {
-        guard let data = self.data(using: String.Encoding.utf16, allowLossyConversion: false) else { return nil }
-        guard let html = try? NSMutableAttributedString(data: data, options: [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else { return nil }
-        return html
     }
 }
