@@ -17,6 +17,7 @@
 
 import Foundation
 import Alamofire
+import SwiftyJSON
 
 let gBitUser = BitweaverUser.active
 
@@ -64,13 +65,12 @@ class BitweaverUser: BitweaverRestObject {
     // Prevent multiple
     static let active = BitweaverUser()
 
-    override init() {
-        super.init()
-        contentTypeGuid = "bituser"
-    }
-
     override var primaryId: String? { return userId?.stringValue }
 
+    override func initProperties() {
+        contentTypeGuid = "bituser"
+    }
+    
     override func getAllPropertyMappings() -> [String: String] {
         var mappings = [
             "user_id": "userId",
@@ -134,7 +134,7 @@ class BitweaverUser: BitweaverRestObject {
                 encoding: URLEncoding.default,
                 headers: headers)
             .validate(statusCode: 200..<500)
-            .responseJSON { [weak self] response in
+            .responseSwiftyJSON { [weak self] response in
 
                 var ret = false
                 var errorMessage: String = ""
@@ -196,8 +196,9 @@ class BitweaverUser: BitweaverRestObject {
                             }
                         }
 
-                        if let properties = response.result.value as? [String: Any] {
-                            self?.load(fromJson: properties)
+                        if response.response?.mimeType == "application/json",  let responseString = response.result.value as? String {
+                            let userJSON = JSON.init(parseJSON: responseString)
+                            self?.load(fromJSON: userJSON)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
                         }
@@ -244,10 +245,8 @@ class BitweaverUser: BitweaverRestObject {
         NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }
 
-    override func load(fromJson remoteHash: [String: Any]) {
-        super.load(fromJson: remoteHash)
-        if userId != nil && userId!.intValue > 0 {
-            NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
-        }
+    override func load(fromJSON json: JSON) {
+        super.load(fromJSON: json)
+        NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
     }
 }

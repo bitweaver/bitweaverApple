@@ -17,6 +17,7 @@ import Foundation
 import Cocoa
 import WebKit
 import Alamofire
+import SwiftyJSON
 
 class BitweaverAppBase: NSObject {
     var authLogin: String = ""
@@ -46,7 +47,7 @@ class BitweaverAppBase: NSObject {
         return headers
     }
 
-    func httpError(response: DataResponse<Any>, request: URLRequest?) -> String {
+    func httpError(response: DataResponse<JSON>, request: URLRequest?) -> String {
         var errorMessage = ""
         var logMessage = ""
         if let error = response.error as? AFError {

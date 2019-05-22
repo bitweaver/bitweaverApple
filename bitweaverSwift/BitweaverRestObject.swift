@@ -10,9 +10,11 @@
 import Foundation
 import Alamofire
 import os.log
+import SwiftyJSON
 
 @objc(BitweaverRestObject)
-class BitweaverRestObject: NSObject {
+class BitweaverRestObject: JSONableObject {
+    
     // REST Mappable properties
     @objc dynamic var contentUuid: UUID = UUID()     /* Universal Unique ID for content, created by your app */
     @objc dynamic var contentId: NSNumber?          /* Content ID created by remote system */
@@ -34,7 +36,6 @@ class BitweaverRestObject: NSObject {
 
     var isUploading: Bool { return uploadStatus.rawValue > HTTPStatusCode.none.rawValue && uploadStatus.rawValue < HTTPStatusCode.ok.rawValue }
 
-    var remoteHash: [String: String] = [:]
     var localHash: [String: String] = [:]
 
     var primaryId: String? { return contentId != nil ? contentId?.stringValue : contentUuid.uuidString }
@@ -58,14 +59,25 @@ class BitweaverRestObject: NSObject {
     var contentFile: URL? { return getFile(for: "content.json") }
     var localFile: URL? { return getFile(for: "local.json") }
     
-    override init() {
-        super.init()
-        initProperties()
+    override func initProperties() {
+        createdDate = Date()
+        lastModifiedDate = Date()
     }
-
-    func initProperties() {
+/*
+    static func newObject( className: String, propertyHash: [String: Any] ) -> BitweaverRestObject? {
+        if let productClass = NSClassFromString(className) as? BitweaverRestObject.Type {
+            return productClass.init(fromHash: propertyHash)
+        }
+        return nil
     }
-
+*/
+    static func newObject( className: String, json: JSON ) -> BitweaverRestObject? {
+        if let productClass = NSClassFromString(className) as? BitweaverRestObject.Type {
+            return productClass.init(fromJSON: json)
+        }
+        return nil
+    }
+    
     func getFile(for fileName: String) -> URL? {
 //        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
         if let contentDir = localPath, createDirectory(contentDir) {
@@ -86,7 +98,7 @@ class BitweaverRestObject: NSObject {
         NotificationCenter.default.post(name: NSNotification.Name("UploadingCancel"), object: self)
     }
 
-    func getAllPropertyMappings() -> [String: String] {
+    override func getAllPropertyMappings() -> [String: String] {
         var mappings = [
             "content_id": "contentId",
             "content_type_guid": "contentTypeGuid",
@@ -110,47 +122,10 @@ class BitweaverRestObject: NSObject {
         return mappings
     }
     
-    // users object property
-    func setProperty(_ propertyName: String, _ propertyValue: Any ) {
-        if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
-            if #available(OSX 10.12, *) {
-//                os_log( "%@ = %@", propertyName, stringValue )
-            }
-            if propertyName.hasSuffix("Date") {
-                setValue(stringValue.toDateISO8601(), forKey: propertyName )
-            } else if propertyName.hasSuffix("Uri") {
-                let nativeValue = URL.init(string: stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
-                let nativeValue = Int(stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Uuid") {
-                let nativeValue = UUID.init(uuidString: stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Color") {
-                let nativeValue = BWColor.init(hexString: stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Image") {
-                if let remoteUrl = URL.init(string: stringValue) {
-                    let nativeValue = BWImage.init(byReferencing: remoteUrl )
-                    setValue(nativeValue, forKey: propertyName )
-                }
-            } else {
-                setValue(stringValue, forKey: propertyName )
-            }
-        } else {
-            BitweaverAppBase.log("set property failed: %@ = %@", propertyName, propertyValue)
-        }
-    }
-
-    func getField(_ name: String ) -> Any {
-        return remoteHash[name] as Any
-    }
-
     class func generateUuid() -> String? {
         return UUID().uuidString
     }
-
+    
     func createDirectory(_ directory: URL) -> Bool {
         var ret = true
         do {
@@ -161,78 +136,9 @@ class BitweaverRestObject: NSObject {
         }
         return ret
     }
-
-    func load(fromJson: [String: Any]) {
-        remoteHash.removeAll()
-        for (key, value) in fromJson {
-            if value is String {
-                remoteHash[key] = value as? String
-            } else if value is NSNull {
-                remoteHash[key] = "" //valueObject.description
-            } else if let valueObject = value as AnyObject? {
-                remoteHash[key] = valueObject.description
-            }
-        }
-        let properties = getAllPropertyMappings()
-        for (remoteKey, remoteValue) in remoteHash {
-            if let propertyName = properties[remoteKey] {
-//                NSLog( "load field %@=>%@", remoteKey, propertyName );
-                setProperty(propertyName, remoteValue)
-            }
-        }
-    }
-
-    static func newObject(_ className: String, _ remoteHash: [String: Any] ) -> BitweaverRestObject? {
-        if let productClass = NSClassFromString(className) as? NSObject.Type {
-            let productObject = productClass.init()
-            if let productObject = productObject as? BitweaverRestObject {
-                productObject.createdDate = Date()
-                productObject.lastModifiedDate = Date()
-                productObject.load(fromJson: remoteHash)
-                return productObject
-            }
-        }
-        return nil
-    }
-
-    func getProperty(_ propertyName: String ) -> String? {
-        var ret: String?
-        if let propValue = value(forKey: propertyName) as AnyObject? {
-            if let nativeValue = propValue as? UUID {
-                ret = nativeValue.uuidString
-            } else if let nativeValue = propValue as? URL {
-                ret = nativeValue.absoluteString
-            } else if let nativeValue = propValue as? Date {
-                ret = nativeValue.toStringISO8601()!
-            } else if let nativeValue = propValue as? BWColor {
-                ret = nativeValue.toHexString()
-            } else if let nativeValue = propValue as? NSNumber {
-                if nativeValue.floatValue != 0 {
-                    ret = nativeValue.description
-                }
-            } else if let nativeValue = propValue as? String {
-                if nativeValue.count > 0 {
-                    ret = nativeValue
-                }
-            } else {
-                print( "unknown storeLocal: ", propertyName )
-            }
-        }
-        return ret
-    }
-
-    func toJson() -> String {
-        let jsonStore = self.toHash()
-        var jsonString = "{"
-        for (key, value) in jsonStore {
-            jsonString += "\""+key+"\":\""+value+"\",\n"
-        }
-        jsonString += "}"
-
-        return jsonString
-    }
-
-    func toHash() -> [String: String] {
+    
+/*
+    func toHash() -> [String: Any] {
         var remoteStore = remoteHash
         for (key, propertyName) in getAllPropertyMappings() {
             if let propString = getProperty(propertyName) {
@@ -241,7 +147,7 @@ class BitweaverRestObject: NSObject {
         }
         return remoteStore
     }
-
+*/
     /*
     func completeStoreRemote( newProduct: BitweaverRestObject, isSuccess: Bool, message: String ) {
         do {
@@ -293,10 +199,20 @@ class BitweaverRestObject: NSObject {
 
             Alamofire.upload(
                 multipartFormData: { multipartFormData in
-                    let exportHash = self.toHash()
-                    for (key, value) in exportHash {
-                        multipartFormData.append(value.data(using: .utf8)!, withName: key)
+                    if let conId = self.contentId {
+                        multipartFormData.append(conId.description.data(using: .utf8)!, withName: "content_id")
                     }
+                    multipartFormData.append(self.contentUuid.description.data(using: .utf8)!, withName: "uuid")
+                    
+//                    let exportHash = self.toHash()
+//                    for (key, value) in exportHash {
+//                        multipartFormData.append(value.data(using: .utf8)!, withName: key)
+//                    }
+                    
+                    if let jsonData = self.toJsonData() {
+                        multipartFormData.append(jsonData, withName: "object_json")
+                    }
+
                     if uploadFiles {
                         for (key, fileUrl) in self.getUploadFiles() {
                             multipartFormData.append(fileUrl, withName: key, fileName: fileUrl.lastPathComponent, mimeType: fileUrl.mimeType())
@@ -320,13 +236,13 @@ class BitweaverRestObject: NSObject {
                             NotificationCenter.default.post(name: NSNotification.Name("ContentUploading"), object: self)
                             print(progress.fractionCompleted)
                         }
-                        upload.responseJSON { response in
+                        upload.responseSwiftyJSON { response in
                             if let statusCode = response.response?.statusCode {
                                 self.uploadStatus = HTTPStatusCode(rawValue: statusCode) ?? HTTPStatusCode.none
                                 switch statusCode {
                                 case 200 ... 399:
-                                    if let remoteHash = response.result.value as? [String: Any] {
-                                        self.load(fromJson: remoteHash)
+                                    if let json = response.result.value {
+                                        self.load(fromJSON: json)
                                         self.storeLocal() // let's save the current live values - perhaps content_id has changed
                                         self.dirty = false
                                     }
@@ -360,24 +276,8 @@ class BitweaverRestObject: NSObject {
     }
 
     func storeLocal(completion: ((BitweaverRestObject, Bool, String) -> Void)? = nil ) {
-        
-        if let fileURL = contentFile {
+        if let fileURL = contentFile, let jsonString = toJsonString() {
             var errorMessage = ""
-            let jsonString = toJson()
-            do {
-                try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
-                completion?(self, true, errorMessage)
-
-                print( fileURL.description )
-            } catch {
-                /* error handling here */
-                errorMessage = "Failed to save JSON to "+fileURL.absoluteString
-                completion?(self, false, errorMessage)
-            }
-        }
-        if let fileURL = localFile {
-            var errorMessage = ""
-            let jsonString = toJson()
             do {
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
                 completion?(self, true, errorMessage)

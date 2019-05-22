@@ -9,7 +9,10 @@
 
 import Cocoa
 import Alamofire
+import SwiftyJSON
+import os.log
 
+@objc(BitcommerceProduct)
 class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
@@ -22,19 +25,10 @@ class BitcommerceProduct: BitweaverRestObject {
 
     override var remoteUri: String { return gBitSystem.apiBaseUri+"bookstore/"+(productId?.description ?? contentUuid.uuidString) }
 
-    override init() {
-        super.init()
-    }
-
     override func initProperties() {
         super.initProperties()
         contentTypeGuid = "bitproduct"
         productTypeClass = getRemoteTypeClass()
-    }
-
-    convenience init(fromJson hash: [String: Any]) {
-        self.init()
-        load(fromJson: hash)
     }
 
     func getRemoteTypeClass() -> String {
@@ -89,28 +83,49 @@ class BitcommerceProduct: BitweaverRestObject {
 
     func getTypeImage() -> BWImage {
         var ret: BWImage?
-        if let defaultImage = remoteHash["product_type_icon"] {
-            let imageUrl = URL.init(fileURLWithPath: defaultImage)
+        if !productDefaultIcon.isEmpty {
+            let imageUrl = URL.init(fileURLWithPath: productDefaultIcon)
             ret = NSImage.init(named: imageUrl.deletingPathExtension().lastPathComponent) ?? nil
         }
         return ret ?? getTypeImageDefault()
     }
 
-    func newProduct(_ remoteHash: [String: Any] ) -> BitcommerceProduct? {
-        // default is type of class invoked
-        var classNames: [String] = [NSStringFromClass(type(of: self))]
-        if let productClass = remoteHash["product_type_class"] as? String {
-            // will attempt to create product of specific type listed
-            classNames.insert(productClass, at: 0)
-        }
+    static func getProductClass( classNames: [String] ) -> BitcommerceProduct.Type? {
         for className in classNames {
-            if let newProduct = BitweaverRestObject.newObject( className, remoteHash ) as? BitcommerceProduct {
-                return newProduct
+            if let productClass = NSClassFromString(className) as? BitcommerceProduct.Type {
+                return productClass
             }
         }
         return nil
     }
-
+    
+    static func newProduct( json: JSON ) -> BitcommerceProduct? {
+        // default is type of class invoked
+        var classNames: [String] = ["BitcommerceProduct"]
+        let productClass = json["product_type_class"].stringValue
+        if !productClass.isEmpty {
+            // will attempt to create product of specific type listed
+            classNames.insert(productClass, at: 0)
+        }
+        if let productClass = getProductClass(classNames: classNames) {
+            return productClass.init(fromJSON: json)
+        }
+        return nil
+    }
+/*
+    static func newProduct( propertyHash: [String: Any] ) -> BitcommerceProduct? {
+        // default is type of class invoked
+        var classNames: [String] = ["BitcommerceProduct"]
+        if let productClass = propertyHash["product_type_class"] as? String {
+            // will attempt to create product of specific type listed
+            classNames.insert(productClass, at: 0)
+        }
+        if let productClass = getProductClass(classNames: classNames) {
+            return productClass.init(fromHash: propertyHash)
+        }
+        return nil
+    }
+*/
     func getList( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
         loadLocal( completion: completion )
         loadRemote( completion: completion )
@@ -135,20 +150,15 @@ class BitcommerceProduct: BitweaverRestObject {
                     let jsonUrl = fileURL.appendingPathComponent("content.json")
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
-                        let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
-                        if let remoteHash = jsonResult as? [String: String] {
-                            if let newProduct = newProduct( remoteHash ) {
-                                if let localUuid = UUID.init(uuidString: dirUuid) {
-                                    newProduct.contentUuid = localUuid
-                                }
-                                productList[dirUuid] = newProduct
-                                break
-                            }
+                        let json = try JSON.init(data: data)
+                        if let newProduct = BitcommerceProduct.newProduct(json: json) {
+                            productList[dirUuid] = newProduct
+                            break
                         }
                     }
                 }
             } catch {
-                print(error)
+//                os_log(error)
             }
         }
         completion( productList )
@@ -165,19 +175,17 @@ class BitcommerceProduct: BitweaverRestObject {
                               encoding: URLEncoding.default,
                               headers: headers)
                 .validate()
-                .responseJSON { [weak self] response in
+                .responseSwiftyJSON { [weak self] response in
                     switch response.result {
                     case .success :
-                        if let jsonList = response.result.value as? [String: [String: Any]] {
-                            var productList = [String: BitcommerceProduct]()
-                            for (_, remoteHash) in jsonList as [String: [String: Any]] {
-                                if let newProduct = self?.newProduct( remoteHash ) {
-                                    newProduct.cacheLocal()
-                                    productList[newProduct.contentUuid.uuidString] = newProduct
-                                }
+                        var productList = [String: BitcommerceProduct]()
+                        if let json = response.result.value {
+                            if let newProduct = BitcommerceProduct.newProduct(json: json) {
+                                newProduct.cacheLocal()
+                                productList[newProduct.contentUuid.uuidString] = newProduct
                             }
-                            completion( productList )
                         }
+                        completion( productList )
                         // Send a notification event user has just logged in.
                         NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
                     case .failure :
