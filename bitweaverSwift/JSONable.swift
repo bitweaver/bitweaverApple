@@ -117,28 +117,33 @@ class JSONableObject: NSObject, JSONable {
      null.
      */
     private func jsonValue(_ propValue: Any ) -> Any {
-        var jsonValue: Any
-        
-        if let jsonObject = propValue as? JSONableObject {
-            jsonValue = jsonObject.toJsonHash()
-        } else if let nativeValue = propValue as? UUID {
-            jsonValue = nativeValue.uuidString
-        } else if let nativeValue = propValue as? URL {
-            jsonValue = nativeValue.absoluteString
-        } else if let nativeValue = propValue as? Date {
-            jsonValue = nativeValue.toStringISO8601()!
-        } else if let nativeValue = propValue as? BWColor {
-            jsonValue = nativeValue.toHexString()
-        } else if let nativeValue = propValue as? NSNumber, nativeValue.floatValue != 0 {
-            jsonValue = nativeValue.description
-        } else if let nativeValue = propValue as? String {
-            jsonValue = nativeValue
-        } else if isNumeric(propValue) {
-            jsonValue = propValue
-        } else {
-            jsonValue = stringFromAny( propValue )
+        var jsonValue: Any = ""
+        do {
+            try ObjC.catchException {
+                if let jsonObject = propValue as? JSONableObject {
+                    jsonValue = jsonObject.toJsonHash()
+                } else if let nativeValue = propValue as? UUID {
+                    jsonValue = nativeValue.uuidString
+                } else if let nativeValue = propValue as? URL {
+                    jsonValue = nativeValue.absoluteString
+                } else if let nativeValue = propValue as? Date {
+                    jsonValue = nativeValue.toStringISO8601()!
+                } else if let nativeValue = propValue as? BWColor {
+                    jsonValue = nativeValue.toHexString()
+                } else if let nativeValue = propValue as? NSNumber, nativeValue.floatValue != 0 {
+                    jsonValue = nativeValue.description
+                } else if let nativeValue = propValue as? String {
+                    jsonValue = nativeValue
+                } else if self.isNumeric(propValue) {
+                    jsonValue = propValue
+                } else {
+                    jsonValue = self.stringFromAny( propValue )
+                }
+            }
+        } catch {
+            print("jsonValue error ocurred: \(error) ")
         }
-        
+
         return jsonValue
     }
     
