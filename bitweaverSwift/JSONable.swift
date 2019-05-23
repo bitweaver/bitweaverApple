@@ -54,43 +54,47 @@ class JSONableObject: NSObject, JSONable {
     }
     
     func setProperty(_ propertyName: String, _ propertyValue: Any ) {
-        if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
-            if #available(OSX 10.12, *) {
-                os_log( "%@ = %@", propertyName, stringValue )
-            }
-            if propertyName.hasSuffix("Date") {
-                setValue(stringValue.toDateISO8601(), forKey: propertyName )
-            } else if propertyName.hasSuffix("Uri") {
-                let nativeValue = URL.init(string: stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
-                let nativeValue = Int(stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Point") {
-                let nativeValue = NSPointFromString(stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Rect") {
-                let nativeValue = NSRectFromString(stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Size") {
-                let nativeValue = NSSizeFromString(stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Uuid") {
-                let nativeValue = UUID.init(uuidString: stringValue)
-                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Color") {
-                let nativeValue = BWColor.init(hexString: stringValue)
-//                setValue(nativeValue, forKey: propertyName )
-            } else if propertyName.hasSuffix("Image") {
-                if let remoteUrl = URL.init(string: stringValue) {
-                    let nativeValue = BWImage.init(byReferencing: remoteUrl )
-                    setValue(nativeValue, forKey: propertyName )
+        do {
+            try ObjC.catchException {
+                if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
+                    //            os_log( "%@ = %@", propertyName, stringValue )
+                    if propertyName.hasSuffix("Date") {
+                        self.setValue(stringValue.toDateISO8601(), forKey: propertyName )
+                    } else if propertyName.hasSuffix("Uri") {
+                        let nativeValue = URL.init(string: stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
+                        let nativeValue = Int(stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Point") {
+                        let nativeValue = NSPointFromString(stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Rect") {
+                        let nativeValue = NSRectFromString(stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Size") {
+                        let nativeValue = NSSizeFromString(stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Uuid") {
+                        let nativeValue = UUID.init(uuidString: stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Color") {
+                        let nativeValue = BWColor.init(hexString: stringValue)
+                        self.setValue(nativeValue, forKey: propertyName )
+                    } else if propertyName.hasSuffix("Image") {
+                        if let remoteUrl = URL.init(string: stringValue) {
+                            let nativeValue = BWImage.init(byReferencing: remoteUrl )
+                            self.setValue(nativeValue, forKey: propertyName )
+                        }
+                    } else {
+                        self.setValue(stringValue, forKey: propertyName )
+                    }
+                } else {
+                    BitweaverAppBase.log("set property failed: %@ = %@", propertyName, propertyValue)
                 }
-            } else {
-                setValue(stringValue, forKey: propertyName )
             }
-        } else {
-            BitweaverAppBase.log("set property failed: %@ = %@", propertyName, propertyValue)
+        } catch {
+            print("setProperty error ocurred: \(error)")
         }
     }
     
