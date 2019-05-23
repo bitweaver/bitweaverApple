@@ -29,6 +29,13 @@ class JSONableObject: NSObject, JSONable {
         self.load(fromJSON: json)
     }
     
+    static func newObject( className: String, json: JSON ) -> BitweaverRestObject? {
+        if let productClass = NSClassFromString(className) as? BitweaverRestObject.Type {
+            return productClass.init(fromJSON: json)
+        }
+        return nil
+    }
+    
     func initProperties() {
     }
     

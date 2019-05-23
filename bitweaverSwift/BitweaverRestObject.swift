@@ -71,13 +71,6 @@ class BitweaverRestObject: JSONableObject {
         return nil
     }
 */
-    static func newObject( className: String, json: JSON ) -> BitweaverRestObject? {
-        if let productClass = NSClassFromString(className) as? BitweaverRestObject.Type {
-            return productClass.init(fromJSON: json)
-        }
-        return nil
-    }
-    
     func getFile(for fileName: String) -> URL? {
 //        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
         if let contentDir = localPath, createDirectory(contentDir) {
