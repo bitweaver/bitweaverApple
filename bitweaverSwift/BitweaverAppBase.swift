@@ -85,9 +85,9 @@ class BitweaverAppBase: NSObject {
         } else if let error = response.error as? URLError {
             errorMessage += "\nURLError occurred: \(error)"
         } else {
-            if let messages = response.result.value as? [String: String] {
+            if let messages = response.result.value {
                 for (_, message) in messages {
-                    errorMessage += message+"\n"
+                    errorMessage += message.stringValue+"\n"
                 }
             } else if let statusCode = response.response?.statusCode {
                 if response.response?.statusCode == 408 {

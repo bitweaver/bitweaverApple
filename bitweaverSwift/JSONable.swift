@@ -40,40 +40,7 @@ class JSONableObject: NSObject, JSONable {
             }
         }
     }
-/*
-    required init(fromHash propertyHash: [String: Any]) {
-        super.init()
-        initProperties()
-        self.load(fromHash: propertyHash)
-    }
-    
-    func load(fromHash propertyHash: [String: Any]) {
-        var remoteHash: [String: Any] = [:]
-        for (key, value) in propertyHash {
-            if value is String {
-                remoteHash[key] = value as? String
-            } else if value is NSNull {
-                remoteHash[key] = ""
-            } else if let hash = value as? [String: Any] {
-                remoteHash[key] = loadBranch(key: key, hash: hash)
-            } else if let valueObject = value as AnyObject? {
-                remoteHash[key] = valueObject.description
-            }
-        }
-        let properties = getAllPropertyMappings()
-        for (remoteKey, remoteValue) in remoteHash {
-            if let propertyName = properties[remoteKey] {
-                //                NSLog( "load field %@=>%@", remoteKey, propertyName );
-                setProperty(propertyName, remoteValue)
-            }
-        }
-    }
-    
-    func loadBranch( key: String, hash: [String: Any] ) -> [String: Any] {
-        var ret: [String: Any] = [:]
-        return ret
-    }
-*/
+
     /// Base implementation, intended to be overridden by all subclasses.
     ///
     /// - Returns: empty Dictionary
@@ -89,7 +56,7 @@ class JSONableObject: NSObject, JSONable {
     func setProperty(_ propertyName: String, _ propertyValue: Any ) {
         if let stringValue = propertyValue as? String, responds(to: NSSelectorFromString(propertyName)) {
             if #available(OSX 10.12, *) {
-                //                os_log( "%@ = %@", propertyName, stringValue )
+                os_log( "%@ = %@", propertyName, stringValue )
             }
             if propertyName.hasSuffix("Date") {
                 setValue(stringValue.toDateISO8601(), forKey: propertyName )
@@ -113,7 +80,7 @@ class JSONableObject: NSObject, JSONable {
                 setValue(nativeValue, forKey: propertyName )
             } else if propertyName.hasSuffix("Color") {
                 let nativeValue = BWColor.init(hexString: stringValue)
-                //                setValue(nativeValue, forKey: propertyName )
+//                setValue(nativeValue, forKey: propertyName )
             } else if propertyName.hasSuffix("Image") {
                 if let remoteUrl = URL.init(string: stringValue) {
                     let nativeValue = BWImage.init(byReferencing: remoteUrl )
@@ -194,18 +161,18 @@ class JSONableObject: NSObject, JSONable {
         return jsonArray
     }
     
-    private func toJsonBranch( propertyHash: [String: Any]) -> [String: Any] {
+    private func toJsonBranch( propertyHash: [AnyHashable: Any]) -> [String: Any] {
         var jsonHash: [String: Any] = [:]
         
         for (key, value) in propertyHash {
             if let subHash = value as? [String: Any] {
                 // Recurse down in for nested objects
-                jsonHash[key] = toJsonBranch(propertyHash: subHash)
+                jsonHash[key.description] = toJsonBranch(propertyHash: subHash)
             } else if let subArray = value as? [Any] {
                 // Recurse down in for nested objects
-                jsonHash[key] = toJsonBranch(propertyArray: subArray)
+                jsonHash[key.description] = toJsonBranch(propertyArray: subArray)
             } else {
-                jsonHash[key] = jsonValue(value)
+                jsonHash[key.description] = jsonValue(value)
             }
         }
         
@@ -216,7 +183,7 @@ class JSONableObject: NSObject, JSONable {
         var jsonHash: [String: Any] = [:]
         for (key, propertyName) in getAllPropertyMappings() {
             if let propValue = value(forKey: propertyName) as Any? {
-                if let subHash = propValue as? [String: Any] {
+                if let subHash = propValue as? [AnyHashable: Any] {
                     // Recurse down in for nested objects
                     jsonHash[key] = toJsonBranch(propertyHash: subHash)
                 } else if let subArray = propValue as? [Any] {
