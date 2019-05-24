@@ -196,8 +196,8 @@ class BitweaverUser: BitweaverRestObject {
                             }
                         }
 
-                        if response.response?.mimeType == "application/json", let responseString = response.result.value as? String {
-                            let userJSON = JSON.init(parseJSON: responseString)
+                        if response.response?.mimeType == "application/json" {
+                            let userJSON = JSON(response.result.value)
                             self?.load(fromJSON: userJSON)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)

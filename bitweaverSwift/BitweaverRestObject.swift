@@ -130,17 +130,6 @@ class BitweaverRestObject: JSONableObject {
         return ret
     }
     
-/*
-    func toHash() -> [String: Any] {
-        var remoteStore = remoteHash
-        for (key, propertyName) in getAllPropertyMappings() {
-            if let propString = getProperty(propertyName) {
-                remoteStore[key] = propString
-            }
-        }
-        return remoteStore
-    }
-*/
     /*
     func completeStoreRemote( newProduct: BitweaverRestObject, isSuccess: Bool, message: String ) {
         do {
