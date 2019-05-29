@@ -92,7 +92,23 @@ class BitweaverRestObject: JSONableObject {
     }
 
     override func getAllPropertyMappings() -> [String: String] {
-        var mappings = [
+        var mappings: [String: String] = [:]
+        
+        let sendableProperties = getSendablePropertyMappings()
+        for (k, v) in sendableProperties {
+            mappings[k] = v
+        }
+        
+        let remoteProperties = getRemotePropertyMappings()
+        for (k, v) in remoteProperties {
+            mappings[k] = v
+        }
+        
+        return mappings
+    }
+
+    override func getRemotePropertyMappings() -> [String: String] {
+        let mappings = [
             "content_id": "contentId",
             "content_type_guid": "contentTypeGuid",
             "user_id": "userId",
@@ -101,13 +117,9 @@ class BitweaverRestObject: JSONableObject {
             "uuid": "contentUuid",
             "display_uri": "displayUri"
         ]
-        let sendableProperties = getSendablePropertyMappings()
-        for (k, v) in sendableProperties {
-            mappings[k] = v
-        }
         return mappings
     }
-
+    
     func getSendablePropertyMappings() -> [String: String] {
         let mappings = [
             "title": "title"
@@ -224,7 +236,7 @@ class BitweaverRestObject: JSONableObject {
                                 switch statusCode {
                                 case 200 ... 399:
                                     if let json = response.result.value {
-                                        self.load(fromJSON: json)
+                                        self.updateRemoteProperties(fromJSON: json)
                                         self.storeLocal() // let's save the current live values - perhaps content_id has changed
                                         self.dirty = false
                                     }

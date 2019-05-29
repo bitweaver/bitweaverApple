@@ -35,7 +35,7 @@ class BitcommerceProduct: BitweaverRestObject {
         return NSStringFromClass(type(of: self))
     }
     
-    override func getAllPropertyMappings() -> [String: String] {
+    override func getRemotePropertyMappings() -> [String: String] {
         var mappings = [
             "product_id": "productId",
             "product_model": "productModel",
@@ -43,7 +43,7 @@ class BitcommerceProduct: BitweaverRestObject {
             "product_type_icon": "productDefaultIcon"
         ]
 
-        for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
+        for (k, v) in super.getRemotePropertyMappings() { mappings[k] = v }
         return mappings
     }
 

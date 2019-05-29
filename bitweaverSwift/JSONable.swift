@@ -48,6 +48,22 @@ class JSONableObject: NSObject, JSONable {
         }
     }
 
+    func updateRemoteProperties(fromJSON json: JSON) {
+        let properties = getRemotePropertyMappings()
+        for (jsonName, varName) in properties {
+            if json[jsonName].exists() {
+                setProperty(varName, json[jsonName])
+            }
+        }
+    }
+    
+    /// Base implementation, intended to be overridden by all subclasses.
+    ///
+    /// - Returns: empty Dictionary
+    func getRemotePropertyMappings() -> [String: String] {
+        return [:]
+    }
+    
     /// Base implementation, intended to be overridden by all subclasses.
     ///
     /// - Returns: empty Dictionary
@@ -64,7 +80,7 @@ class JSONableObject: NSObject, JSONable {
         do {
             try ObjC.catchException {
                 if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
-                    //            os_log( "%@ = %@", propertyName, stringValue )
+                    // os_log( "%@ = %@", propertyName, stringValue )
                     if propertyName.hasSuffix("Date") {
                         self.setValue(stringValue.toDateISO8601(), forKey: propertyName )
                     } else if propertyName.hasSuffix("Uri") {

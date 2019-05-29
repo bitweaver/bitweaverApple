@@ -71,7 +71,7 @@ class BitweaverUser: BitweaverRestObject {
         contentTypeGuid = "bituser"
     }
     
-    override func getAllPropertyMappings() -> [String: String] {
+    override func getRemotePropertyMappings() -> [String: String] {
         var mappings = [
             "user_id": "userId",
             "login": "login",
@@ -86,7 +86,7 @@ class BitweaverUser: BitweaverRestObject {
             "logo_url" : "logoUrl"
  */
         ]
-        for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
+        for (k, v) in super.getRemotePropertyMappings() { mappings[k] = v }
         return mappings
     }
 
@@ -197,7 +197,7 @@ class BitweaverUser: BitweaverRestObject {
                         }
 
                         if response.response?.mimeType == "application/json" {
-                            let userJSON = JSON(response.result.value)
+                            let userJSON = JSON(response.result.value as Any)
                             self?.load(fromJSON: userJSON)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
