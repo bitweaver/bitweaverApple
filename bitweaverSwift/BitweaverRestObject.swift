@@ -240,7 +240,6 @@ class BitweaverRestObject: JSONableObject {
                                         self.storeLocal() // let's save the current live values - perhaps content_id has changed
                                         self.dirty = false
                                     }
-                                    NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
                                     ret = true
                                 case 400 ... 499:
                                     if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
@@ -251,6 +250,7 @@ class BitweaverRestObject: JSONableObject {
                                 default:
                                     errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(statusCode), response.request?.url?.host ?? "")
                                 }
+                                NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
                             }
                             completion(self, ret, errorMessage)
                         }
