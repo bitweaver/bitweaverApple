@@ -109,6 +109,9 @@ class JSONableObject: NSObject, JSONable {
                             let nativeValue = BWImage.init(byReferencing: remoteUrl )
                             self.setValue(nativeValue, forKey: propertyName )
                         }
+					} else if propertyName.hasPrefix("is") {
+						let nativeValue = (stringValue == "true" || stringValue == "1") ? true : false
+						self.setValue(nativeValue, forKey: propertyName )
                     } else {
                         self.setValue(stringValue, forKey: propertyName )
                     }
@@ -117,7 +120,7 @@ class JSONableObject: NSObject, JSONable {
                 }
             }
         } catch {
-            print("setProperty error ocurred: \(error)")
+			print("setProperty("+propertyName+") error ocurred: \(error)")
         }
     }
     
@@ -157,7 +160,7 @@ class JSONableObject: NSObject, JSONable {
                 }
             }
         } catch {
-            print("jsonValue error ocurred: \(error) ")
+			print("jsonValue("+(propValue as? String ?? "ANY")+") error ocurred: \(error) ")
         }
 
         return jsonValue
