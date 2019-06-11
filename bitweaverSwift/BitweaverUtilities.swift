@@ -307,8 +307,8 @@ extension CGImage {
 }
 
 extension BWColor {
-    convenience init(hexString: String) {
-        var checkedHex: String = hexString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    convenience init(hexValue: String) {
+        var checkedHex: String = hexValue.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         if checkedHex.isEmpty {
             checkedHex = "#FFFFFF"
         }

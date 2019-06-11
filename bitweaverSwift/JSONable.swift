@@ -9,6 +9,7 @@
 import Foundation
 import os.log
 import SwiftyJSON
+import Cocoa
 
 protocol JSONable {
     func toJsonData() -> Data?
@@ -102,7 +103,7 @@ class JSONableObject: NSObject, JSONable {
                         let nativeValue = UUID.init(uuidString: stringValue)
                         self.setValue(nativeValue, forKey: propertyName )
                     } else if propertyName.hasSuffix("Color") {
-                        let nativeValue = BWColor.init(hexString: stringValue)
+                        let nativeValue = BWColor.init(hexValue: stringValue)
                         self.setValue(nativeValue, forKey: propertyName )
                     } else if propertyName.hasSuffix("Image") {
                         if let remoteUrl = URL.init(string: stringValue) {
