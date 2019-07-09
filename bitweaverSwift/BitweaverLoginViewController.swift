@@ -14,6 +14,11 @@ class BitweaverLoginViewController: BWViewController {
     @IBOutlet weak var feedbackLabel: NSTextField!
     @IBOutlet weak var signinButton: NSButton!
     @IBOutlet weak var connectProgress: NSProgressIndicator!
+	
+	@IBOutlet var rememberPasswordButton: NSButton!
+	var shouldSavePassword: Bool {
+		return rememberPasswordButton.state == NSControl.StateValue.on
+	}
 
     @IBAction func cancel(_ sender: Any) {
         dismiss(nil)
@@ -22,7 +27,7 @@ class BitweaverLoginViewController: BWViewController {
     @IBAction func signin(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             connectProgress.startAnimation(sender)
-            gBitUser.authenticate( authLogin: emailInput.stringValue, authPassword: passwordInput.stringValue, handler: self)
+            gBitUser.authenticate( authLogin: emailInput.stringValue, authPassword: passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
@@ -30,7 +35,7 @@ class BitweaverLoginViewController: BWViewController {
 
     @IBAction func register(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
-            gBitUser.register( emailInput.stringValue, passwordInput.stringValue, handler: self)
+			gBitUser.register( emailInput.stringValue, passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
@@ -58,6 +63,10 @@ class BitweaverLoginViewController: BWViewController {
     }
 
     override func viewDidLoad() {
+		if let password = KeychainHelper.loadPassword(service: "keyChainService", account: "savedUserAccount") {
+			passwordInput.stringValue = password
+		} else { print("key chain fial") }
+		
     connectProgress.stopAnimation(nil)
         signinButton.keyEquivalent = "\r"
         signinButton.isHighlighted = true

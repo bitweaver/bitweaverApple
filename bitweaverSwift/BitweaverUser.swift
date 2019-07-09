@@ -112,7 +112,7 @@ class BitweaverUser: BitweaverRestObject {
     }
     */
 
-    func register(_ authLogin: String, _ authPassword: String, handler: BitweaverLoginViewController) {
+	func register(_ authLogin: String, _ authPassword: String, handler: BitweaverLoginViewController, saveToKeyChain: Bool) {
 
         // Assume login was email field, update here for registration
         email = authLogin
@@ -143,7 +143,7 @@ class BitweaverUser: BitweaverRestObject {
                     switch statusCode {
                     case 200 ... 399:
                         ret = true
-                        self?.authenticate(authLogin: authLogin, authPassword: authPassword, handler: handler)
+						self?.authenticate(authLogin: authLogin, authPassword: authPassword, handler: handler, saveToKeyChain: saveToKeyChain)
                     case 400 ... 499:
                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                             print("Data: \(utf8Text)")
@@ -158,7 +158,7 @@ class BitweaverUser: BitweaverRestObject {
         }
     }
 
-    func authenticate( authLogin: String, authPassword: String, handler: BitweaverLoginViewController ) {
+    func authenticate( authLogin: String, authPassword: String, handler: BitweaverLoginViewController, saveToKeyChain: Bool ) {
 
         var headers = gBitSystem.httpHeaders()
         let credentialData = "\(authLogin):\(authPassword)".data(using: String.Encoding.utf8)!
@@ -201,6 +201,14 @@ class BitweaverUser: BitweaverRestObject {
                             self?.load(fromJSON: userJSON)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
+							if saveToKeyChain {
+								if let accountEmail = self?.email {
+									print(accountEmail)
+									KeychainHelper.savePassword(service: "keyChainService", account: "savedUserAccount", data: authPassword)
+								}
+							} else {
+								KeychainHelper.removePassword(service: "keyChainService", account: "savedUserAccount")
+							}	
                         }
                         ret = true
 
@@ -249,4 +257,76 @@ class BitweaverUser: BitweaverRestObject {
         super.load(fromJSON: json)
         NotificationCenter.default.post(name: NSNotification.Name("UserLoaded"), object: self)
     }
+}
+
+class KeychainHelper: NSObject {
+	
+	static let kSecClassValue = NSString(format: kSecClass)
+	static let kSecAttrAccountValue = NSString(format: kSecAttrAccount)
+	static let kSecValueDataValue = NSString(format: kSecValueData)
+	static let kSecClassGenericPasswordValue = NSString(format: kSecClassGenericPassword)
+	static let kSecAttrServiceValue = NSString(format: kSecAttrService)
+	static let kSecMatchLimitValue = NSString(format: kSecMatchLimit)
+	static let kSecReturnDataValue = NSString(format: kSecReturnData)
+	static let kSecMatchLimitOneValue = NSString(format: kSecMatchLimitOne)
+	
+	static func updatePassword(service: String, account: String, data: String) {
+		guard let dataFromString =  data.data(using: String.Encoding.utf8, allowLossyConversion: false)
+			else {return}
+		let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue])
+		
+		let status = SecItemUpdate(keychainQuery as CFDictionary, [kSecValueDataValue: dataFromString] as CFDictionary)
+		
+		if status != errSecSuccess {
+			if let err = SecCopyErrorMessageString(status, nil) {
+				print("Read failed: \(err)")
+			}
+		}
+	}// end update password
+	
+	static func removePassword(service: String, account: String) {
+		let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, kCFBooleanTrue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecReturnDataValue])
+		
+		let status = SecItemDelete(keychainQuery as CFDictionary)
+		if status != errSecSuccess {
+			if let err = SecCopyErrorMessageString(status, nil) {
+				print("Remove failed: \(err)")
+			}
+		}
+		
+	}
+	
+	static func savePassword(service: String, account: String, data: String) {
+		if let dataFromString = data.data(using: String.Encoding.utf8, allowLossyConversion: false) {
+			
+			let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, dataFromString], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecValueDataValue])
+			
+			let status = SecItemAdd(keychainQuery as CFDictionary, nil)
+			
+			if status != errSecSuccess {    // Always check the status
+				if let err = SecCopyErrorMessageString(status, nil) {
+					print("Write failed: \(err)")
+				}
+			}
+		}
+	}
+	
+	static func loadPassword(service: String, account: String) -> String? {
+		let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, kCFBooleanTrue, kSecMatchLimitOneValue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecReturnDataValue, kSecMatchLimitValue])
+		
+		var dataTypeRef: AnyObject?
+		
+		let status: OSStatus = SecItemCopyMatching(keychainQuery, &dataTypeRef)
+		var contentsOfKeychain: String?
+		
+		if status == errSecSuccess {
+			if let retrievedData = dataTypeRef as? Data {
+				contentsOfKeychain = String(data: retrievedData, encoding: String.Encoding.utf8)
+			}
+		} else {
+			print("Nothing was retrieved from the keychain. Status code \(status)")
+		}
+		
+		return contentsOfKeychain
+	}
 }
