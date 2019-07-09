@@ -17,7 +17,7 @@ class BitcommerceProduct: BitweaverRestObject {
     // REST properties
     @objc dynamic var productId: NSNumber?    /* Content ID created by remote system */
     @objc dynamic var productTypeName: String?
-    @objc dynamic var productTypeClass: String = "BitcommerceProduct"
+    @objc dynamic var remoteTypeClass: String = "BitcommerceProduct"
     @objc dynamic var productModel: String = ""
     @objc dynamic var productDefaultIcon: String = ""
     var enabled: [Bool] = []
@@ -28,7 +28,7 @@ class BitcommerceProduct: BitweaverRestObject {
     override func initProperties() {
         super.initProperties()
         contentTypeGuid = "bitproduct"
-        productTypeClass = getRemoteTypeClass()
+        remoteTypeClass = getRemoteTypeClass()
     }
 
     func getRemoteTypeClass() -> String {
@@ -49,7 +49,7 @@ class BitcommerceProduct: BitweaverRestObject {
 
     override func getSendablePropertyMappings() -> [String: String] {
         var mappings = [
-            "product_type_class": "productTypeClass"
+            "product_type_class": "remoteTypeClass"
         ]
         for (k, v) in super.getSendablePropertyMappings() { mappings[k] = v }
         return mappings
@@ -68,7 +68,7 @@ class BitcommerceProduct: BitweaverRestObject {
     }
 
     private func getViewController(_ type: String) -> BWViewController {
-        let controllerClass: String = productTypeClass+type+"ViewController"
+        let controllerClass: String = remoteTypeClass+type+"ViewController"
         if let bundleName = Bundle.main.infoDictionary!["CFBundleName"] as? String,
            let ret: BitcommerceProductViewController.Type = NSClassFromString( bundleName + "." + controllerClass ) as? BitcommerceProductViewController.Type {
             return ret.init()
