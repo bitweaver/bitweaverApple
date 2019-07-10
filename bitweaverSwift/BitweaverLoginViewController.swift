@@ -63,10 +63,12 @@ class BitweaverLoginViewController: BWViewController {
     }
 
     override func viewDidLoad() {
-		if let password = KeychainHelper.loadPassword(service: "keyChainService", account: "savedUserAccount") {
+		let account = KeychainHelper.loadAccount()
+		emailInput.stringValue = account
+		if let password = KeychainHelper.loadPassword(service: "keyChainService", account: account) {
 			passwordInput.stringValue = password
-		} else { print("key chain fial") }
-		
+		}
+
     connectProgress.stopAnimation(nil)
         signinButton.keyEquivalent = "\r"
         signinButton.isHighlighted = true

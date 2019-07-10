@@ -201,14 +201,14 @@ class BitweaverUser: BitweaverRestObject {
                             self?.load(fromJSON: userJSON)
                             // Send a notification event user has just logged in.
                             NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
-							if saveToKeyChain {
-								if let accountEmail = self?.email {
-									print(accountEmail)
-									KeychainHelper.savePassword(service: "keyChainService", account: "savedUserAccount", data: authPassword)
+							if let accountEmail = self?.email {
+								if saveToKeyChain {
+									KeychainHelper.savePassword(service: "keyChainService", account: accountEmail, data: authPassword)
+								} else {
+									KeychainHelper.removePassword(service: "keyChainService", account: accountEmail)
+									KeychainHelper.removeAccount(service: "keyChainService")
 								}
-							} else {
-								KeychainHelper.removePassword(service: "keyChainService", account: "savedUserAccount")
-							}	
+							}
                         }
                         ret = true
 
@@ -293,26 +293,57 @@ class KeychainHelper: NSObject {
 				print("Remove failed: \(err)")
 			}
 		}
-		
 	}
 	
 	static func savePassword(service: String, account: String, data: String) {
 		if let dataFromString = data.data(using: String.Encoding.utf8, allowLossyConversion: false) {
 			
-			let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, dataFromString], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecValueDataValue])
-			
+			let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, dataFromString],
+																		 forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecValueDataValue])
 			let status = SecItemAdd(keychainQuery as CFDictionary, nil)
 			
 			if status != errSecSuccess {    // Always check the status
 				if let err = SecCopyErrorMessageString(status, nil) {
-					print("Write failed: \(err)")
+					if (err as String) == "The specified item already exists in the keychain" {
+						updatePassword(service: service, account: account, data: data)
+					}
 				}
 			}
 		}
 	}
 	
+	static func removeAccount(service: String = "keyChainService") {
+		let query: [String: Any] = [kSecClass as String: kSecClassGenericPasswordValue,
+									kSecAttrServiceValue as String: service,
+									kSecMatchLimit as String: kSecMatchLimitOne,
+									kSecReturnAttributes as String: true,
+									kSecReturnData as String: true]
+		let status = SecItemDelete(query as CFDictionary)
+		if status != errSecSuccess {
+			if let err = SecCopyErrorMessageString(status, nil) {
+				print("Remove failed: \(err)")
+			}
+		}
+	}
+	
+	static func loadAccount(service: String = "keyChainService") -> String {
+		let query: [String: Any] = [kSecClass as String: kSecClassGenericPasswordValue,
+									kSecAttrServiceValue as String: service,
+									kSecMatchLimit as String: kSecMatchLimitOne,
+									kSecReturnAttributes as String: true,
+									kSecReturnData as String: true]
+		var item: CFTypeRef?
+		
+		SecItemCopyMatching(query as CFDictionary, &item)
+		if let existingItem = item as? [String: Any], let account = existingItem[kSecAttrAccount as String] as? String {
+			return account
+		}
+		return ""
+	}
+	
 	static func loadPassword(service: String, account: String) -> String? {
-		let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, kCFBooleanTrue, kSecMatchLimitOneValue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecReturnDataValue, kSecMatchLimitValue])
+		let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, account, kCFBooleanTrue, kSecMatchLimitOneValue],
+																	 forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecReturnDataValue, kSecMatchLimitValue])
 		
 		var dataTypeRef: AnyObject?
 		
