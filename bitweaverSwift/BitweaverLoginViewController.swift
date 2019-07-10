@@ -10,7 +10,7 @@ import Cocoa
 
 class BitweaverLoginViewController: BWViewController {
 
-	var loginCompletion: (()->Void)?
+	var loginCompletion: (() -> Void)?
 	
     @IBOutlet weak var emailInput: NSTextField!
     @IBOutlet weak var passwordInput: NSSecureTextField!
@@ -72,7 +72,6 @@ class BitweaverLoginViewController: BWViewController {
 			passwordInput.stringValue = password
 		}
 
-		
     	connectProgress.stopAnimation(nil)
         signinButton.keyEquivalent = "\r"
         signinButton.isHighlighted = true
