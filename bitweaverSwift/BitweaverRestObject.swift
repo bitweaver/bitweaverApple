@@ -228,7 +228,7 @@ class BitweaverRestObject: JSONableObject {
                             self.uploadPercentage = 100.0 * progress.fractionCompleted // make sure we don't have zero
                             self.uploadMessage = "Uploading..."
                             NotificationCenter.default.post(name: NSNotification.Name("ContentUploading"), object: self)
-                            print(progress.fractionCompleted)
+//                            print(progress.fractionCompleted)
                         }
                         upload.responseSwiftyJSON { response in
                             if let statusCode = response.response?.statusCode {

@@ -88,8 +88,9 @@ class JSONableObject: NSObject, JSONable {
                         let nativeValue = URL.init(string: stringValue)
                         self.setValue(nativeValue, forKey: propertyName )
                     } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
-                        let nativeValue = Int(stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
+						if let nativeValue = Int(stringValue) {
+                        	self.setValue(nativeValue, forKey: propertyName )
+						}
                     } else if propertyName.hasSuffix("Point") {
                         let nativeValue = NSPointFromString(stringValue)
                         self.setValue(nativeValue, forKey: propertyName )
