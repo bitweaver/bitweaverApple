@@ -24,7 +24,9 @@ class BitweaverRestObject: JSONableObject {
     @objc dynamic var displayUri: URL?               /* URL of the */
     @objc dynamic var createdDate: Date?
     @objc dynamic var lastModifiedDate: Date?
-
+	
+	@objc dynamic private var contentPrefs: [String: Any] = [:]
+	
     var displayTitle: String { return title ?? defaultTitle }
     var defaultTitle: String { return "Untitled "+defaultName }
     var defaultName: String { return contentTypeGuid }
@@ -71,6 +73,38 @@ class BitweaverRestObject: JSONableObject {
         return nil
     }
 */
+
+	override func setProperty(_ propertyName: String, _ jsonValue: JSON ) {
+		if propertyName == "contentPrefs" {
+			for (dictKey, dictJson) in jsonValue.dictionaryValue {
+				setPreference(key: dictKey, value: dictJson)
+			}
+		} else {
+			super.setProperty(propertyName, jsonValue.stringValue)
+		}
+	}
+	
+	func setPreference(key: String, value: Any) {
+		contentPrefs[key] = value
+	}
+	
+	func getPreference(key: String, default: Any?) -> Any? {
+		var ret: Any?
+		
+		if (contentPrefs.index(forKey: key) != nil) {
+			if let range = key.range(of: "_") {
+				let capitalizedKey = key.replacingCharacters(in: range, with: " ").capitalized
+				
+				if let stringVal = contentPrefs[key] as? String {
+					
+					ret = getNativeValue(propertyName: capitalizedKey, propertyValue: stringVal)
+				}
+				
+			}
+		}
+		return ret
+	}
+	
     func getFile(for fileName: String) -> URL? {
 //        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
         if let contentDir = localPath, createDirectory(contentDir) {
@@ -78,7 +112,7 @@ class BitweaverRestObject: JSONableObject {
         }
         return nil
     }
-    
+
     func startUpload() {
         uploadPercentage = 0.01
         uploadStatus = HTTPStatusCode.continue
@@ -106,7 +140,7 @@ class BitweaverRestObject: JSONableObject {
         
         return mappings
     }
-
+	
     override func getRemotePropertyMappings() -> [String: String] {
         let mappings = [
             "content_id": "contentId",
@@ -115,7 +149,8 @@ class BitweaverRestObject: JSONableObject {
             "date_created": "createdDate",
             "date_last_modified": "lastModifiedDate",
             "uuid": "contentUuid",
-            "display_uri": "displayUri"
+            "display_uri": "displayUri",
+			"content_prefs": "contentPrefs"
         ]
         return mappings
     }
@@ -284,5 +319,4 @@ class BitweaverRestObject: JSONableObject {
             }
         }
     }
-
 }

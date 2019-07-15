@@ -72,51 +72,55 @@ class JSONableObject: NSObject, JSONable {
         return [:]
     }
     
-    // users object property
-    func setProperty(_ propertyName: String, _ jsonValue: JSON ) {
-        setProperty(propertyName, jsonValue.stringValue)
-    }
-    
+	func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
+		var ret: Any?
+		
+		// os_log( "%@ = %@", propertyName, stringValue )
+		if propertyName.hasSuffix("Date") {
+			ret = propertyValue.toDateISO8601()
+		} else if propertyName.hasSuffix("Uri") {
+			ret = URL.init(string: propertyValue)
+		} else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
+			ret = Int(propertyValue)
+		} else if propertyName.hasSuffix("Point") {
+			ret = NSPointFromString(propertyValue)
+		} else if propertyName.hasSuffix("Rect") {
+			ret = NSRectFromString(propertyValue)
+			
+		} else if propertyName.hasSuffix("Font") {
+			ret = NSFont.init(name: propertyValue, size: 18.0)
+			
+		} else if propertyName.hasSuffix("Size") {
+			ret = NSSizeFromString(propertyValue)
+		} else if propertyName.hasSuffix("Uuid") {
+			ret = UUID.init(uuidString: propertyValue)
+		} else if propertyName.hasSuffix("Color") {
+			ret = BWColor.init(hexValue: propertyValue)
+		} else if propertyName.hasSuffix("Image") {
+			if let remoteUrl = URL.init(string: propertyValue) {
+				ret = BWImage.init(byReferencing: remoteUrl )
+			}
+		} else if propertyName.hasPrefix("is") {
+			ret = (propertyValue == "true" || propertyValue == "1") ? true : false
+		} else {
+			ret = propertyValue
+		}
+
+		return ret
+	}
+	
+	// users object property
+	func setProperty(_ propertyName: String, _ jsonValue: JSON ) {
+		setProperty(propertyName, jsonValue.stringValue)
+	}
+	
     func setProperty(_ propertyName: String, _ propertyValue: Any ) {
         do {
             try ObjC.catchException {
                 if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
-                    // os_log( "%@ = %@", propertyName, stringValue )
-                    if propertyName.hasSuffix("Date") {
-                        self.setValue(stringValue.toDateISO8601(), forKey: propertyName )
-                    } else if propertyName.hasSuffix("Uri") {
-                        let nativeValue = URL.init(string: stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
-                    } else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
-						if let nativeValue = Int(stringValue) {
-                        	self.setValue(nativeValue, forKey: propertyName )
-						}
-                    } else if propertyName.hasSuffix("Point") {
-                        let nativeValue = NSPointFromString(stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
-                    } else if propertyName.hasSuffix("Rect") {
-                        let nativeValue = NSRectFromString(stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
-                    } else if propertyName.hasSuffix("Size") {
-                        let nativeValue = NSSizeFromString(stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
-                    } else if propertyName.hasSuffix("Uuid") {
-                        let nativeValue = UUID.init(uuidString: stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
-                    } else if propertyName.hasSuffix("Color") {
-                        let nativeValue = BWColor.init(hexValue: stringValue)
-                        self.setValue(nativeValue, forKey: propertyName )
-                    } else if propertyName.hasSuffix("Image") {
-                        if let remoteUrl = URL.init(string: stringValue) {
-                            let nativeValue = BWImage.init(byReferencing: remoteUrl )
-                            self.setValue(nativeValue, forKey: propertyName )
-                        }
-					} else if propertyName.hasPrefix("is") {
-						let nativeValue = (stringValue == "true" || stringValue == "1") ? true : false
+					if let nativeValue = self.getNativeValue(propertyName: propertyName, propertyValue: stringValue) {
 						self.setValue(nativeValue, forKey: propertyName )
-                    } else {
-                        self.setValue(stringValue, forKey: propertyName )
-                    }
+					}
                 } else {
                     BitweaverAppBase.log("set property failed: %@ = %@", propertyName, propertyValue)
                 }
