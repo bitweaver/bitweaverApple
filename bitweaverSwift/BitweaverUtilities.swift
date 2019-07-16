@@ -347,6 +347,55 @@ extension BWColor {
     }
 }
 
+extension NSFont {
+	convenience init?(cssValue: String) {
+		var fontName = "Helvetica"
+		var fontSize: CGFloat = 18.0
+		
+		// Need to parse font here. This is very inflexible and only matches toCssString() data.
+		let stringComponents = cssValue.components(separatedBy: " ")
+		if stringComponents.count > 0 {
+			if stringComponents[0] == "font:" {
+				if stringComponents.count == 3 {
+					fontName = stringComponents[2]
+					if let pointSize = NumberFormatter().number(from: stringComponents[1].filter("01234567890.".contains)) {
+						fontSize = CGFloat(pointSize.floatValue)
+					}
+				}
+			}
+		}
+
+		self.init(name: fontName, size: fontSize)
+	}
+	
+	func toCssString() -> String {
+		let ret = "font: "+pointSize.description+"pt "+fontName
+		return ret
+	}
+}
+
+extension NSRegularExpression {
+	convenience init(_ pattern: String) {
+		do {
+			try self.init(pattern: pattern)
+		} catch {
+			preconditionFailure("Illegal regular expression: \(pattern).")
+		}
+	}
+
+	static func matches(for pattern: String, in text: String) -> [String] {
+		do {
+			let regex = try NSRegularExpression(pattern: pattern)
+			let nsString = text as NSString
+			let results = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
+			return results.map { nsString.substring(with: $0.range)}
+		} catch let error {
+			print("invalid regex: \(error.localizedDescription)")
+			return []
+		}
+	}
+}
+
 enum HTTPStatusCode: Int {
     case none = 0
     // 100 Informational

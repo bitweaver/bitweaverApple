@@ -25,8 +25,6 @@ class BitweaverRestObject: JSONableObject {
     @objc dynamic var createdDate: Date?
     @objc dynamic var lastModifiedDate: Date?
 	
-	@objc dynamic private var contentPrefs: [String: Any] = [:]
-	
     var displayTitle: String { return title ?? defaultTitle }
     var defaultTitle: String { return "Untitled "+defaultName }
     var defaultName: String { return contentTypeGuid }
@@ -74,37 +72,6 @@ class BitweaverRestObject: JSONableObject {
     }
 */
 
-	override func setProperty(_ propertyName: String, _ jsonValue: JSON ) {
-		if propertyName == "contentPrefs" {
-			for (dictKey, dictJson) in jsonValue.dictionaryValue {
-				setPreference(key: dictKey, value: dictJson)
-			}
-		} else {
-			super.setProperty(propertyName, jsonValue.stringValue)
-		}
-	}
-	
-	func setPreference(key: String, value: Any) {
-		contentPrefs[key] = value
-	}
-	
-	func getPreference(key: String, default: Any?) -> Any? {
-		var ret: Any?
-		
-		if (contentPrefs.index(forKey: key) != nil) {
-			if let range = key.range(of: "_") {
-				let capitalizedKey = key.replacingCharacters(in: range, with: " ").capitalized
-				
-				if let stringVal = contentPrefs[key] as? String {
-					
-					ret = getNativeValue(propertyName: capitalizedKey, propertyValue: stringVal)
-				}
-				
-			}
-		}
-		return ret
-	}
-	
     func getFile(for fileName: String) -> URL? {
 //        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
         if let contentDir = localPath, createDirectory(contentDir) {
@@ -142,17 +109,18 @@ class BitweaverRestObject: JSONableObject {
     }
 	
     override func getRemotePropertyMappings() -> [String: String] {
-        let mappings = [
+        var mappings = [
             "content_id": "contentId",
             "content_type_guid": "contentTypeGuid",
             "user_id": "userId",
             "date_created": "createdDate",
             "date_last_modified": "lastModifiedDate",
             "uuid": "contentUuid",
-            "display_uri": "displayUri",
-			"content_prefs": "contentPrefs"
+            "display_uri": "displayUri"
         ]
-        return mappings
+
+		for (k, v) in super.getAllPropertyMappings() { mappings[k] = v }
+		return mappings
     }
     
     func getSendablePropertyMappings() -> [String: String] {

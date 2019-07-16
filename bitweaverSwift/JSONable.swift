@@ -18,7 +18,9 @@ protocol JSONable {
 }
 
 class JSONableObject: NSObject, JSONable {
-    
+
+	@objc dynamic private var objectPrefs: [String: Any] = [:]	
+
     override init() {
         super.init()
         initProperties()
@@ -62,14 +64,14 @@ class JSONableObject: NSObject, JSONable {
     ///
     /// - Returns: empty Dictionary
     func getRemotePropertyMappings() -> [String: String] {
-        return [:]
+		return [:]
     }
     
     /// Base implementation, intended to be overridden by all subclasses.
     ///
     /// - Returns: empty Dictionary
     func getAllPropertyMappings() -> [String: String] {
-        return [:]
+		return ["preferences": "objectPrefs"]
     }
     
 	func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
@@ -86,10 +88,8 @@ class JSONableObject: NSObject, JSONable {
 			ret = NSPointFromString(propertyValue)
 		} else if propertyName.hasSuffix("Rect") {
 			ret = NSRectFromString(propertyValue)
-			
 		} else if propertyName.hasSuffix("Font") {
-			ret = NSFont.init(name: propertyValue, size: 18.0)
-			
+			ret = NSFont.init(cssValue: propertyValue)
 		} else if propertyName.hasSuffix("Size") {
 			ret = NSSizeFromString(propertyValue)
 		} else if propertyName.hasSuffix("Uuid") {
@@ -111,13 +111,24 @@ class JSONableObject: NSObject, JSONable {
 	
 	// users object property
 	func setProperty(_ propertyName: String, _ jsonValue: JSON ) {
-		setProperty(propertyName, jsonValue.stringValue)
+		if propertyName == "objectPrefs" {
+			for (dictKey, dictJson) in jsonValue.dictionaryValue {
+				// Create a key that isCamelCased to match auto-typing prefix/suffix in getNativeValue
+				var typedKey = dictKey
+				if let range = dictKey.range(of: "_") {
+					typedKey = dictKey.replacingCharacters(in: range, with: " ").capitalized
+				}
+				setPreference(key: dictKey, value: getNativeValue(propertyName: typedKey, propertyValue: dictJson.stringValue) ?? nil)
+			}
+		} else {
+			setProperty(propertyName, jsonValue.stringValue)
+		}
 	}
 	
-    func setProperty(_ propertyName: String, _ propertyValue: Any ) {
+    private func setProperty(_ propertyName: String, _ propertyValue: Any ) {
         do {
             try ObjC.catchException {
-                if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
+				if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
 					if let nativeValue = self.getNativeValue(propertyName: propertyName, propertyValue: stringValue) {
 						self.setValue(nativeValue, forKey: propertyName )
 					}
@@ -159,6 +170,8 @@ class JSONableObject: NSObject, JSONable {
                     jsonValue = nativeValue.description
                 } else if let nativeValue = propValue as? String {
                     jsonValue = nativeValue
+				} else if let nativeValue = propValue as? NSFont {
+					jsonValue = nativeValue.toCssString()
                 } else if self.isNumeric(propValue) {
                     jsonValue = propValue
                 } else {
@@ -166,7 +179,8 @@ class JSONableObject: NSObject, JSONable {
                 }
             }
         } catch {
-			print("jsonValue("+(propValue as? String ?? "ANY")+") error ocurred: \(error) ")
+			let propValueDescription = String(format: "%@", [propValue])
+			print("jsonValue("+propValueDescription+") error ocurred: \(error) ")
         }
 
         return jsonValue
@@ -226,7 +240,9 @@ class JSONableObject: NSObject, JSONable {
             if let propValue = value(forKey: propertyName) as Any? {
                 if let subHash = propValue as? [AnyHashable: Any] {
                     // Recurse down in for nested objects
-                    jsonHash[key] = toJsonBranch(propertyHash: subHash)
+					if subHash.count > 0 {
+                    	jsonHash[key] = toJsonBranch(propertyHash: subHash)
+					}
                 } else if let subArray = propValue as? [Any] {
                     // Recurse down in for nested objects
                     jsonHash[key] = toJsonBranch(propertyArray: subArray)
@@ -255,4 +271,22 @@ class JSONableObject: NSObject, JSONable {
         }
         return nil
     }
+
+	func setPreference(key: String, value: Any?) {
+		if value == nil {
+			objectPrefs.removeValue(forKey: key)
+		} else {
+			objectPrefs[key] = value
+		}
+	}
+	
+	func getPreference(_ key: String, defaultValue: Any? = nil) -> Any? {
+		var ret: Any? = defaultValue
+		
+		if objectPrefs.index(forKey: key) != nil {
+			ret = objectPrefs[key]
+		}
+		return ret
+	}
+	
 }
