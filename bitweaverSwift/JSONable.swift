@@ -73,7 +73,18 @@ class JSONableObject: NSObject, JSONable {
     func getAllPropertyMappings() -> [String: String] {
 		return ["preferences": "objectPrefs"]
     }
-    
+
+	/**
+	Return value from json string as its native type.
+
+	
+	Cast json string to value in its native type
+	ex: getNativeValue(propertyName: backGroundColor,
+					   propertyValue: #00000) -> NSColor.black
+	
+	- parameter propertyName: The name of the property stored to json. This name is always suffixed with the native swift type that the value will be casted as.
+	- parameter propertyValue: The value to be casted as native swift type
+	*/
 	func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
 		var ret: Any?
 		
@@ -272,6 +283,17 @@ class JSONableObject: NSObject, JSONable {
         return nil
     }
 
+	/**
+	Set user defined preferences, to be stored as json string
+
+	ex: if you want to store useres prefered page background color to green
+	setPreference(key: page_background_color, value: NSColor.green)
+	
+	- parameter key: The name of the preference being set: the name will have following format:
+	"setDescription_subSetDescription_type" where _type is the native swift type the value will be converted to when retrieved
+	
+	- parameter value: The value being stored as its native type
+	*/
 	func setPreference(key: String, value: Any?) {
 		if value == nil {
 			objectPrefs.removeValue(forKey: key)
@@ -280,9 +302,18 @@ class JSONableObject: NSObject, JSONable {
 		}
 	}
 	
-	func getPreference(_ key: String, defaultValue: Any? = nil) -> Any? {
-		var ret: Any? = defaultValue
-		
+	/**
+	Return user defined preferences
+	
+	ex: if you want to retrieve useres prefered background color: getPreference("page_background_color") will return an NSColor value
+	
+	- parameter key: The name of the preference being retrieved: the name will have following format:
+	"setDescription_subSetDescription_type"
+	ex: text_title_color, text_body_color
+	except for booleans: is_value
+	*/
+	func getPreference(_ key: String) -> Any? {
+		var ret: Any?
 		if objectPrefs.index(forKey: key) != nil {
 			ret = objectPrefs[key]
 		}
