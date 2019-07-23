@@ -62,6 +62,8 @@ class BitweaverUser: BitweaverRestObject {
 
     var products: [String: BitcommerceProduct] = [:]
 
+	var cookieArray: [HTTPCookie] = []
+	
     // Prevent multiple
     static let active = BitweaverUser()
 
@@ -167,7 +169,7 @@ class BitweaverUser: BitweaverRestObject {
 
         Alamofire.request(gBitSystem.apiBaseUri+"api/users/authenticate",
                           method: .get,
-                          parameters: nil,
+						  parameters: ["rme": "on"], // enable remember me. Very important so your cookie doesn't die
                           encoding: URLEncoding.default,
                           headers: headers)
             .validate(statusCode: 200..<500)
@@ -185,15 +187,9 @@ class BitweaverUser: BitweaverRestObject {
                         gBitSystem.authPassword = authPassword
 
                         // Set all cookies so subsequent requests pass on info
-                        var cookies: [HTTPCookie] = []
+						self?.cookieArray.removeAll()
                         if let aFields = response.response?.allHeaderFields as? [String: String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
-                            cookies = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
-                        }
-
-                        if cookies.count > 0 {
-                            for cookie in cookies {
-                                HTTPCookieStorage.shared.setCookie(cookie)
-                            }
+                            self?.cookieArray = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
                         }
 
                         if response.response?.mimeType == "application/json" {
@@ -244,11 +240,7 @@ class BitweaverUser: BitweaverRestObject {
             }
         }
 
-        if let cookies = HTTPCookieStorage.shared.cookies {
-            for cookie in cookies {
-                HTTPCookieStorage.shared.deleteCookie(cookie)
-            }
-        }
+		cookieArray.removeAll()
         completion()
         NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }

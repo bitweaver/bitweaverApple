@@ -188,7 +188,7 @@ class BitweaverWebViewController: BWViewController, WKUIDelegate, WKNavigationDe
         var urlRequest = URLRequest(url: url)
         if #available(OSX 10.13, *) {
         } else {
-            let cookies = HTTPCookie.requestHeaderFields(with: HTTPCookieStorage.shared.cookies ?? [])
+            let cookies = HTTPCookie.requestHeaderFields(with: BitweaverUser.active.cookieArray)
 
             var headers = urlRequest.allHTTPHeaderFields ?? [:]
             headers.merge( cookies, uniquingKeysWith: { (current, _) in current })
