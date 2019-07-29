@@ -144,45 +144,6 @@ class BitweaverRestObject: JSONableObject {
         }
         return ret
     }
-    
-    /*
-    func completeStoreRemote( newProduct: BitweaverRestObject, isSuccess: Bool, message: String ) {
-        do {
-            if isSuccess {
-                if let cacheUrl = self.cachePath, let localUrl = self.localPath, FileManager.default.fileExists(atPath: localUrl.path) {
-                    if FileManager.default.fileExists(atPath: cacheUrl.path) {
-                        try FileManager.default.trashItem(at: localUrl, resultingItemURL: nil)
-                    } else {
-                        try FileManager.default.createDirectory(at: cacheUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-                        try FileManager.default.moveItem(at: localUrl, to: self.cachePath!)
-                    }
-                }
-                NotificationCenter.default.post(name: NSNotification.Name("ProductEditRequest"), object: newProduct)
-            } else {
-            }
-        } catch {
-            BitweaverAppBase.log( "Local to Remote directory move failed: \(error)", self.localPath ?? "", self.cachePath ?? "" )
-        }
-    }
-
-    func localToRemote(completion: @escaping (BitweaverRestObject, Bool, String) -> Void) {
-        if isLocal {
-            let completionBlock: (BitweaverRestObject, Bool, String) -> Void  = { newProduct, isSuccess, message in
-                self.completeStoreRemote( newProduct: newProduct, isSuccess: isSuccess, message: message )
-                completion( newProduct, isSuccess, message )
-            }
-            storeRemote(completion: completionBlock)
-        }
-    }
-
-    func store(completion: @escaping (BitweaverRestObject, Bool, String) -> Void?) {
-        if isRemote {
-            storeRemote(completion: completion)
-        } else {
-            storeLocal(completion: completion)
-        }
-    }
-     */
 
     func getUploadFiles() -> [String: URL] {
         return [:]
@@ -201,11 +162,6 @@ class BitweaverRestObject: JSONableObject {
                     }
                     multipartFormData.append(self.contentUuid.description.data(using: .utf8)!, withName: "uuid")
                     
-//                    let exportHash = self.toHash()
-//                    for (key, value) in exportHash {
-//                        multipartFormData.append(value.data(using: .utf8)!, withName: key)
-//                    }
-                    
                     if let jsonData = self.toJsonData() {
                         multipartFormData.append(jsonData, withName: "object_json")
                     }
@@ -215,8 +171,6 @@ class BitweaverRestObject: JSONableObject {
                             multipartFormData.append(fileUrl, withName: key, fileName: fileUrl.lastPathComponent, mimeType: fileUrl.mimeType())
                         }
                     }
-//                  multipartFormData.append(unicornImageURL, withName: "unicorn")
-//                  multipartFormData.append(rainbowImageURL, withName: "rainbow")
                 },
                 usingThreshold: UInt64.init(),
                 to: restUri,
