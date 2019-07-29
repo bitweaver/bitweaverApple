@@ -127,6 +127,111 @@ extension Float {
     }
 }
 
+import CommonCrypto
+
+extension URL {
+	func md5() -> Data? {
+		let bufferSize = 1024 * 1024
+		
+		do {
+			// Open file for reading:
+			let file = try FileHandle(forReadingFrom: self)
+			defer {
+				file.closeFile()
+			}
+			
+			// Create and initialize MD5 context:
+			var context = CC_MD5_CTX()
+			CC_MD5_Init(&context)
+			
+			// Read up to `bufferSize` bytes, until EOF is reached, and update MD5 context:
+			while autoreleasepool(invoking: {
+				let data = file.readData(ofLength: bufferSize)
+				if data.count > 0 {
+					data.withUnsafeBytes {
+						_ = CC_MD5_Update(&context, $0, numericCast(data.count))
+					}
+					return true // Continue
+				} else {
+					return false // End of file
+				}
+			}) { }
+			
+			// Compute the MD5 digest:
+			var digest = Data(count: Int(CC_MD5_DIGEST_LENGTH))
+			digest.withUnsafeMutableBytes {
+				_ = CC_MD5_Final($0, &context)
+			}
+			
+			return digest
+			
+		} catch {
+			print("Cannot open file:", error.localizedDescription)
+			return nil
+		}
+	}
+
+	func sha256() -> Data? {
+		do {
+			let bufferSize = 1024 * 1024
+			// Open file for reading:
+			let file = try FileHandle(forReadingFrom: self)
+			defer {
+				file.closeFile()
+			}
+			
+			// Create and initialize SHA256 context:
+			var context = CC_SHA256_CTX()
+			CC_SHA256_Init(&context)
+			
+			// Read up to `bufferSize` bytes, until EOF is reached, and update SHA256 context:
+			while autoreleasepool(invoking: {
+				// Read up to `bufferSize` bytes
+				let data = file.readData(ofLength: bufferSize)
+				if data.count > 0 {
+					data.withUnsafeBytes {
+						_ = CC_SHA256_Update(&context, $0, numericCast(data.count))
+					}
+					// Continue
+					return true
+				} else {
+					// End of file
+					return false
+				}
+			}) { }
+			
+			// Compute the SHA256 digest:
+			var digest = Data(count: Int(CC_SHA256_DIGEST_LENGTH))
+			digest.withUnsafeMutableBytes {
+				_ = CC_SHA256_Final($0, &context)
+			}
+			
+			return digest
+		} catch {
+			print(error)
+			return nil
+		}
+	}
+}
+
+extension Data {
+	func digest() -> String {
+		let hexDigest = self.map { String(format: "%02hhx", $0) }.joined()
+		return hexDigest
+	}
+}
+
+extension Formatter {
+	static let iso8601: DateFormatter = {
+		let formatter = DateFormatter()
+		formatter.calendar = Calendar(identifier: .iso8601)
+		formatter.locale = Locale(identifier: "en_US_POSIX")
+		formatter.timeZone = TimeZone(secondsFromGMT: 0)
+		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+		return formatter
+	}()
+}
+
 extension String {
     func toDateISO8601() -> Date? {
         let RFC3339DateFormatter = DateFormatter()
