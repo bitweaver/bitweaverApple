@@ -862,7 +862,7 @@ extension LinkedList {
 }
 
 extension LinkedList {
-	convenience init(array: Array<T>) {
+	convenience init(array: [T]) {
 		self.init()
 		
 		for element in array {
