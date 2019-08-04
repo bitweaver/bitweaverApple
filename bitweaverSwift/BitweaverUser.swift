@@ -71,8 +71,11 @@ class BitweaverUser: BitweaverRestObject {
 
     override func initProperties() {
         contentTypeGuid = "bituser"
-    }
-    
+		let completion: (Bool, String) -> Void = { [weak self] isSuccess, message in
+		}
+		verifySession(completion: completion)
+	}
+	
     override func getRemotePropertyMappings() -> [String: String] {
         var mappings = [
             "user_id": "userId",
@@ -124,13 +127,14 @@ class BitweaverUser: BitweaverRestObject {
         for (key, name) in properties {
             parameters[key] = value(forKey: name) as? String
         }
+		parameters["register"] = "y"
         parameters["email"] = authLogin
         parameters["password"] = authPassword
         parameters["real_name"] = NSFullUserName()
 
         let headers = gBitSystem.httpHeaders()
 
-        Alamofire.request(gBitSystem.apiBaseUri+"users",
+        Alamofire.request(gBitSystem.apiBaseUri+"api/users/register",
                 method: .post,
                 parameters: parameters,
                 encoding: URLEncoding.default,
@@ -168,7 +172,7 @@ class BitweaverUser: BitweaverRestObject {
         headers["Authorization"] = "Basic \(base64Credentials)"
 
         Alamofire.request(gBitSystem.apiBaseUri+"api/users/authenticate",
-                          method: .get,
+                          method: .post,
 						  parameters: ["rme": "on"], // enable remember me. Very important so your cookie doesn't die
                           encoding: URLEncoding.default,
                           headers: headers)
@@ -194,9 +198,8 @@ class BitweaverUser: BitweaverRestObject {
 
                         if response.response?.mimeType == "application/json" {
                             let userJSON = JSON(response.result.value as Any)
+							// .load will send a notification event user has just logged in.
                             self?.load(fromJSON: userJSON)
-                            // Send a notification event user has just logged in.
-                            NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticated"), object: self)
 							if let accountEmail = self?.email {
 								if saveToKeyChain {
 									KeychainHelper.savePassword(service: "keyChainService", account: accountEmail, data: authPassword)
@@ -224,7 +227,19 @@ class BitweaverUser: BitweaverRestObject {
         }
     }
 
-    func logout( completion: @escaping () -> Void ) {
+	func verifySession( completion: @escaping (_ success: Bool, _ message: String) -> Void ) {
+		let localCompletion: (Int, JSON, String ) -> Void = {statusCode, json , message in
+			let success = statusCode >= 200 && statusCode <= 399
+			if success {
+				self.load(fromJSON: json)
+			}
+			completion( success, message )
+		}
+		
+		sendRestRequest(uri: gBitSystem.apiBaseUri+"api/users/authenticate", method: .get, completion: localCompletion)
+	}
+	
+    func logout( completion: @escaping (_ success: Bool, _ message: String) -> Void ) {
         gBitSystem.authLogin = ""
         gBitSystem.authPassword = ""
         let properties = getAllPropertyMappings()
@@ -239,11 +254,55 @@ class BitweaverUser: BitweaverRestObject {
                 }
             }
         }
+		
+		let localCompletion: (Int, JSON, String ) -> Void = {statusCode, json , message in
+			let success = statusCode >= 200 && statusCode <= 399
+			// fail or not, we don't care. We've already unset all member variables
+			completion( success, message )
+		}
 
+		sendRestRequest(uri: gBitSystem.apiBaseUri+"api/users/authenticate", method: .delete, completion: localCompletion)
+		
 		cookieArray.removeAll()
-        completion()
-        NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
+		NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }
+	
+	private func sendRestRequest( uri: String, method: HTTPMethod, completion: @escaping (_ statusCode: Int, _ json: JSON, _ message: String) -> Void ) {
+		let headers = gBitSystem.httpHeaders()
+		Alamofire.request(	uri,
+							  method: method,
+							  encoding: URLEncoding.default,
+							  headers: headers)
+			.validate(statusCode: 200..<500)
+			.responseJSON { [weak self] response in
+				
+				var errorMessage: String = ""
+				
+				if let statusCode = response.response?.statusCode {
+					let respJson = JSON(response.result.value as Any)
+
+					switch statusCode {
+					case 200 ... 399:
+						// Set all cookies so subsequent requests pass on info
+						self?.cookieArray.removeAll()
+						if let aFields = response.response?.allHeaderFields as? [String: String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
+							self?.cookieArray = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
+						}
+					case 400 ... 499:
+						if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
+							print("Data: \(utf8Text)")
+						}
+						
+						// errorMessage = gBitSystem.httpError( response:response, request:response.request! )!
+						errorMessage = String(format: "Server request failed.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
+					//gBitSystem.authenticationFailure(with: request, response: response, error: response.error, json: response.result.value)
+					default:
+						errorMessage = String(format: "Unexpected error. Most likely there was an issue on the remote server. Out there, somewhere some engineer just got paged, and now (s)he is sad.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
+					}
+					completion(statusCode, respJson, errorMessage)
+				}
+			}
+	}
 
     override func load(fromJSON json: JSON) {
         super.load(fromJSON: json)

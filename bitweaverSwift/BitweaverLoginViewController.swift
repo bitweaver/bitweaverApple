@@ -30,7 +30,12 @@ class BitweaverLoginViewController: BWViewController {
     @IBAction func signin(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             connectProgress.startAnimation(sender)
-            gBitUser.authenticate( authLogin: emailInput.stringValue, authPassword: passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
+			let completion: (Bool, String) -> Void = { [self] isSuccess, message in
+				if !isSuccess {
+					gBitUser.authenticate( authLogin: self.emailInput.stringValue, authPassword: self.passwordInput.stringValue, handler: self, saveToKeyChain: self.shouldSavePassword)
+				}
+			}
+			gBitUser.verifySession(completion: completion)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
@@ -49,7 +54,7 @@ class BitweaverLoginViewController: BWViewController {
         view.window?.styleMask.remove(.resizable)
     }
 
-    func authenticationResponse( success: Bool, message: String ) {
+    func authenticationResponse(success: Bool, message: String) {
         if success {
             dismiss(nil)
         } else {

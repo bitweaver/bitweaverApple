@@ -28,7 +28,7 @@ class BitweaverLogoutViewController: BWViewController {
     }
 
     @IBAction func logout(_ sender: Any) {
-        let completion: () -> Void = {
+		let completion: (Bool, String) -> Void = {success, message in 
             self.dismiss(nil)
         }
 
