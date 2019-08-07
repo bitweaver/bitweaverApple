@@ -71,7 +71,7 @@ class BitweaverUser: BitweaverRestObject {
 
     override func initProperties() {
         contentTypeGuid = "bituser"
-		let completion: (Bool, String) -> Void = { [weak self] isSuccess, message in
+		let completion: (Bool, String) -> Void = { isSuccess, message in
 		}
 		verifySession(completion: completion)
 	}
@@ -228,7 +228,7 @@ class BitweaverUser: BitweaverRestObject {
     }
 
 	func verifySession( completion: @escaping (_ success: Bool, _ message: String) -> Void ) {
-		let localCompletion: (Int, JSON, String ) -> Void = {statusCode, json , message in
+		let localCompletion: (Int, JSON, String ) -> Void = {statusCode, json, message in
 			let success = statusCode >= 200 && statusCode <= 399
 			if success {
 				self.load(fromJSON: json)
@@ -255,7 +255,7 @@ class BitweaverUser: BitweaverRestObject {
             }
         }
 		
-		let localCompletion: (Int, JSON, String ) -> Void = {statusCode, json , message in
+		let localCompletion: (Int, JSON, String ) -> Void = {statusCode, json, message in
 			let success = statusCode >= 200 && statusCode <= 399
 			// fail or not, we don't care. We've already unset all member variables
 			completion( success, message )
