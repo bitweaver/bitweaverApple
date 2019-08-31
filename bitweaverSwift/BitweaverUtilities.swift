@@ -259,10 +259,12 @@ extension String {
 		return rtfString
 	}
 	
-	var stripRTF: String? {
+	var stripRTF: String {
 		let attrString = self.rtfStringToAttributedString
-		let cleanString = attrString?.string.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
-		return cleanString
+		if let cleanString = attrString?.string.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines) {
+			return cleanString
+		}
+		return ""
 	}
 	
 	var stripHTML: String {
