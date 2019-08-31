@@ -252,6 +252,34 @@ extension String {
     var humanizedAppUri: String {
         return self.replacingOccurrences(of: "https://app.", with: "https://www.")
     }
+	
+	var rtfStringToAttributedString: NSAttributedString? {
+		guard let data = self.data(using: String.Encoding.utf8, allowLossyConversion: false) else { return nil }
+		guard let rtfString = try? NSMutableAttributedString(data: data, options: [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.rtf], documentAttributes: nil) else { return nil }
+		return rtfString
+	}
+	
+	var stripRTF: String? {
+		let attrString = self.rtfStringToAttributedString
+		let cleanString = attrString?.string.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
+		return cleanString
+	}
+	
+	var stripHTML: String {
+		guard let data = self.data(using: .utf8) else {
+			return ""
+		}
+		let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+			.documentType: NSAttributedString.DocumentType.html,
+			.characterEncoding: String.Encoding.utf8.rawValue
+		]
+		do {
+			let attrString = try NSAttributedString.init(data: data, options: options, documentAttributes: nil)
+			let cleanString = attrString.string.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
+			return cleanString
+		} catch {}
+		return ""
+	}
 }
 
 extension URL {
@@ -573,6 +601,18 @@ enum HTTPStatusCode: Int {
 }
 
 extension NSAttributedString {
+	
+	var attributedStringToRtfString: String {
+		var ret = ""
+		do {
+			let data = try self.data(from: NSRange( location: 0, length: self.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
+			if let dataString = String.init(data: data, encoding: String.Encoding.utf8) {
+				ret = dataString
+			}
+		} catch {}
+		return ret
+	}
+	
     var attributedString2Html: String? {
         do {
             let htmlData = try self.data(from: NSRange( location: 0, length: self.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.html])
