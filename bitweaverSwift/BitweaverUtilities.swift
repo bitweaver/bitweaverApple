@@ -386,7 +386,7 @@ extension BWImage {
             try imageData.write(to: url)
             return true
         } catch {
-            BitweaverAppBase.log("failed to write to disk. url: %@", url.absoluteString)
+            BitweaverAppBase.log(level: BitweaverAppBase.LogLevel.Error, "failed to write to disk. url: %@", url.absoluteString)
             return false
         }
     }

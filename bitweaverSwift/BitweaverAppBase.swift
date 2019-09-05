@@ -20,6 +20,12 @@ import Alamofire
 import SwiftyJSON
 
 class BitweaverAppBase: NSObject {
+    
+    enum LogLevel: String {
+        case Error
+        case Warning
+    }
+    
     var authLogin: String = ""
     var authPassword: String = ""
 
@@ -138,7 +144,7 @@ class BitweaverAppBase: NSObject {
 		return BitweaverAppBase.dirForDataStorage( "cache/"+subPath )
 	}
 	
-    static func log(_ format: String, _ args: Any...) {
+    static func log(level: LogLevel, _ format: String, _ args: Any...) {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         let timestamp = fmt.string(from: Date())
@@ -154,7 +160,7 @@ class BitweaverAppBase: NSObject {
             stringArgs.append(String(describing: arg))
         }
 
-        let logString = "\(timestamp) \(pname)[\(pid):\(tid)] " + String(format: format, arguments: stringArgs)
+        let logString = level.rawValue + " \(timestamp) \(pname)[\(pid):\(tid)] " + String(format: format, arguments: stringArgs)
         print(logString)
     }
 }

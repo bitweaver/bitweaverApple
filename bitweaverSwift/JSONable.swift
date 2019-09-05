@@ -144,7 +144,7 @@ class JSONableObject: NSObject, JSONable {
 						self.setValue(nativeValue, forKey: propertyName )
 					}
                 } else {
-                    BitweaverAppBase.log("set property failed: %@ = %@", propertyName, propertyValue)
+                    BitweaverAppBase.log(level: BitweaverAppBase.LogLevel.Warning, "set property failed: %@ = %@", propertyName, propertyValue)
                 }
             }
         } catch {
