@@ -134,6 +134,10 @@ class BitweaverAppBase: NSObject {
         return ret
     }
 
+	static func getCacheDir( subPath: String) -> URL? {
+		return BitweaverAppBase.dirForDataStorage( "cache/"+subPath )
+	}
+	
     static func log(_ format: String, _ args: Any...) {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"

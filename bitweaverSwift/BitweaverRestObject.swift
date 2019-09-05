@@ -52,7 +52,7 @@ class BitweaverRestObject: JSONableObject {
 
     var localProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "local/"+contentTypeGuid ) }
     private var localPath: URL? { return localProjectsUrl?.appendingPathComponent(contentUuid.uuidString) }
-    
+	
 //    var cacheProjectsUrl: URL? { return BitweaverAppBase.dirForDataStorage( "user-"+(gBitUser.userId?.stringValue ?? "0")+"/"+contentTypeGuid ) }
 //    private var cachePath: URL? { return cacheProjectsUrl?.appendingPathComponent(primaryId?.description ?? "0") }
     
