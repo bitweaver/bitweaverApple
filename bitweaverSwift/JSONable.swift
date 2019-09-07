@@ -93,6 +93,8 @@ class JSONableObject: NSObject, JSONable {
 			ret = propertyValue.toDateISO8601()
 		} else if propertyName.hasSuffix("Uri") {
 			ret = URL.init(string: propertyValue)
+		} else if propertyName.hasSuffix("Degrees") {
+			ret = Double(propertyValue)
 		} else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
 			ret = Int(propertyValue)
 		} else if propertyName.hasSuffix("Point") {
