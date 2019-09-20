@@ -55,6 +55,11 @@ class BitcommerceProduct: BitweaverRestObject {
         return mappings
     }
 
+	override func resetUniqueIdentifiers() {
+		super.resetUniqueIdentifiers()
+		productId = nil
+	}
+	
     func isValid() -> Bool {
         return productId != nil
     }

@@ -63,6 +63,10 @@ class BitweaverRestObject: JSONableObject {
         createdDate = Date()
         lastModifiedDate = Date()
     }
+	
+	func resetUniqueIdentifiers() {
+		contentUuid = UUID()
+	}
 /*
     static func newObject( className: String, propertyHash: [String: Any] ) -> BitweaverRestObject? {
         if let productClass = NSClassFromString(className) as? BitweaverRestObject.Type {
