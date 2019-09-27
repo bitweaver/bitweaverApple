@@ -153,7 +153,7 @@ class BitweaverRestObject: JSONableObject {
         return [:]
     }
 
-    func storeRemote(uploadFiles: Bool = true, completion: @escaping (BitweaverRestObject, Bool, String) -> Void) {
+    func storeRemote(uploadFiles: Bool = true, completion: @escaping (Bool, String) -> Void) {
         if !isUploading {
             startUpload()
 
@@ -213,12 +213,12 @@ class BitweaverRestObject: JSONableObject {
                                 }
                                 NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
                             }
-                            completion(self, ret, errorMessage)
+                            completion(ret, errorMessage)
                         }
                     case .failure(let encodingError):
                         self.uploadStatus = HTTPStatusCode.none
                         errorMessage = encodingError.localizedDescription
-                        completion(self, ret, errorMessage)
+                        completion(ret, errorMessage)
                     }
                 }
             )
