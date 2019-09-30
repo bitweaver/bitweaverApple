@@ -30,6 +30,7 @@ class JSONableObject: NSObject, JSONable {
         super.init()
         initProperties()
         self.load(fromJSON: json)
+		verifyProperties()
     }
     
     static func newObject( className: String, json: JSON ) -> BitweaverRestObject? {
@@ -39,9 +40,19 @@ class JSONableObject: NSObject, JSONable {
         return nil
     }
     
+	/**
+	 Called before loading from JSON, this function should make sure any default values are set. What this means is dependent on your class, and this method should be overridden.
+	*/
     func initProperties() {
     }
     
+	/**
+	 Called after loading from JSON, this function is called to make sure the JSON data was not corrupted. What this means is dependent on your class, and this method should be overridden.
+	*/
+	func verifyProperties() {
+		
+	}
+	
     func load(fromJSON json: JSON) {
         let properties = getAllPropertyMappings()
         for (jsonName, varName) in properties {
