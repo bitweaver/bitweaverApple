@@ -150,7 +150,7 @@ class BitcommerceProduct: BitweaverRestObject {
         for case let fileURL as URL in enumerator {
             do {
                 let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
-                if resourceValues.isDirectory! {
+                if let isDirectory = resourceValues.isDirectory, isDirectory {
                     let dirUuid = fileURL.lastPathComponent
                     let jsonUrl = fileURL.appendingPathComponent("content.json")
                     if fileManager.fileExists(atPath: jsonUrl.path) {
