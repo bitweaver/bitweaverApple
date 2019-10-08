@@ -153,10 +153,18 @@ class BitweaverRestObject: JSONableObject {
         return [:]
     }
 
-    func storeRemote(uploadFiles: Bool = true, completion: @escaping (Bool, String) -> Void) {
+	enum UploadStatus: String {
+		case Error
+		case Start
+		case Uploading
+		case Success
+	}
+	
+    func storeRemote(uploadFiles: Bool = true, uploadCallback: @escaping (UploadStatus, String) -> Void) {
         if !isUploading {
             startUpload()
 
+			uploadCallback(.Start, "Starting Upload...")
             NotificationCenter.default.post(name: NSNotification.Name("ContentUploading"), object: self)
 
             Alamofire.upload(
@@ -181,7 +189,7 @@ class BitweaverRestObject: JSONableObject {
                 method: .post,
                 headers: gBitSystem.httpHeaders(),
                 encodingCompletion: { encodingResult in
-                    var ret = false
+					var ret: UploadStatus = .Error
                     var errorMessage = ""
                     switch encodingResult {
                     case .success(let upload, _, _):
@@ -201,7 +209,7 @@ class BitweaverRestObject: JSONableObject {
                                         self.storeLocal() // let's save the current live values - perhaps content_id has changed
                                         self.dirty = false
                                     }
-                                    ret = true
+									ret = .Success
                                 case 400 ... 499:
                                     if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                                         errorMessage = utf8Text
@@ -213,12 +221,12 @@ class BitweaverRestObject: JSONableObject {
                                 }
                                 NotificationCenter.default.post(name: NSNotification.Name("ContentUploadComplete"), object: self)
                             }
-                            completion(ret, errorMessage)
+                            uploadCallback(ret, errorMessage)
                         }
                     case .failure(let encodingError):
                         self.uploadStatus = HTTPStatusCode.none
                         errorMessage = encodingError.localizedDescription
-                        completion(ret, errorMessage)
+						uploadCallback(.Error, errorMessage)
                     }
                 }
             )
