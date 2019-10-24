@@ -83,7 +83,7 @@ class BitcommerceProduct: BitweaverRestObject {
     }
 
     func getTypeImageDefault() -> NSImage {
-        return BWImage.init(named: "NSAdvanced")!
+		return BWImage.init(named: "NSMultipleDocuments") ?? NSImage.init(size: NSSize.init(width: 32, height: 32))
     }
 
     func getTypeImage() -> BWImage {
