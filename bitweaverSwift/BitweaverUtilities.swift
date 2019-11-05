@@ -650,17 +650,25 @@ public class LRUCache<KeyType: Hashable> {
 	}
 	
 	public func get(_ key: KeyType) -> NSImage? {
+		let lock = NSLock()
+		lock.lock()
+		
 		guard let val = cache[key] else {
+			lock.unlock()
 			return nil
 		}
 		
 		remove(key)
 		insert(key, val: val)
 		
+		lock.unlock()
 		return val
 	}
 	
 	public func set(_ key: KeyType, val: NSImage) {
+		let lock = NSLock()
+		lock.lock()
+		
 		if cache[key] != nil {
 			remove(key)
 		} else if priority.count >= maxSize, let keyToRemove = priority.last?.value {
@@ -668,15 +676,20 @@ public class LRUCache<KeyType: Hashable> {
 		}
 		
 		insert(key, val: val)
+		lock.unlock()
 	}
 	
 	private func remove(_ key: KeyType) {
+		let lock = NSLock.init()
+		lock.lock()
+		
 		cache.removeValue(forKey: key)
 		guard let node = key2node[key] else {
 			return
 		}
 		priority.remove(node: node)
 		key2node.removeValue(forKey: key)
+		lock.unlock()
 	}
 	
 	private func insert(_ key: KeyType, val: NSImage) {
