@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Cocoa
 
 extension BWViewController {
     func dialogOKCancel(question: String, text: String) -> Bool {
