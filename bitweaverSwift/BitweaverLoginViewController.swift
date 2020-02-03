@@ -8,10 +8,8 @@
 
 import Cocoa
 
-class BitweaverLoginViewController: BWViewController {
+class BitweaverLoginViewController: BaseBitweaverLoginViewController {
 
-	var loginCompletion: (() -> Void)?
-	
     @IBOutlet weak var emailInput: NSTextField!
     @IBOutlet weak var passwordInput: NSSecureTextField!
     @IBOutlet weak var feedbackLabel: NSTextField!
@@ -54,7 +52,7 @@ class BitweaverLoginViewController: BWViewController {
         view.window?.styleMask.remove(.resizable)
     }
 
-    func authenticationResponse(success: Bool, message: String) {
+    override func authenticationResponse(success: Bool, message: String) {
         if success {
             dismiss(nil)
         } else {
@@ -62,7 +60,7 @@ class BitweaverLoginViewController: BWViewController {
         }
     }
 
-    func registrationResponse( success: Bool, message: String ) {
+    override func registrationResponse( success: Bool, message: String ) {
         if success {
             dismiss(nil)
         } else {

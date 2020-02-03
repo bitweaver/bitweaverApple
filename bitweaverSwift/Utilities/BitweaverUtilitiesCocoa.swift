@@ -149,7 +149,7 @@ extension CGImage {
     }
 }
 
-extension BWColor {
+extension NSColor {
     func toHexString() -> String {
         var r: CGFloat = 0
         var g: CGFloat = 0
@@ -190,9 +190,5 @@ extension NSFont {
 
         self.init(name: fontName, size: fontSize)
     }
-    
-    func toCssString() -> String {
-        let ret = "font: "+pointSize.description+"pt "+fontName
-        return ret
-    }
 }
+

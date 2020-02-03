@@ -7,7 +7,20 @@
 //
 
 import Foundation
+import UIKit
+import CoreServices
 
 extension BWViewController {
     
+}
+
+extension URL {
+    func mimeType() -> String {
+        if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue() {
+            if let mimetype = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
+                return mimetype as String
+            }
+        }
+        return "application/octet-stream"
+    }
 }

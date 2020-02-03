@@ -9,7 +9,11 @@
 import Foundation
 import os.log
 import SwiftyJSON
+#if os(iOS)
+import UIKit
+#else
 import Cocoa
+#endif
 
 protocol JSONable {
     func toJsonData() -> Data?
@@ -109,20 +113,20 @@ class JSONableObject: NSObject, JSONable {
 		} else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
 			ret = Int(propertyValue)
 		} else if propertyName.hasSuffix("Point") {
-			ret = NSPointFromString(propertyValue)
+//			ret = NSPointFromString(propertyValue)
 		} else if propertyName.hasSuffix("Rect") {
-			ret = NSRectFromString(propertyValue)
+//			ret = NSRectFromString(propertyValue)
 		} else if propertyName.hasSuffix("Font") {
-			ret = NSFont.init(cssValue: propertyValue)
+//			ret = NSFont.init(cssValue: propertyValue)
 		} else if propertyName.hasSuffix("Size") {
-			ret = NSSizeFromString(propertyValue)
+//			ret = NSSizeFromString(propertyValue)
 		} else if propertyName.hasSuffix("Uuid") {
 			ret = UUID.init(uuidString: propertyValue)
 		} else if propertyName.hasSuffix("Color") {
 			ret = BWColor.init(hexValue: propertyValue)
 		} else if propertyName.hasSuffix("Image") {
 			if let remoteUrl = URL.init(string: propertyValue) {
-				ret = BWImage.init(byReferencing: remoteUrl )
+//				ret = BWImage.init(byReferencing: remoteUrl )
 			}
 		} else if propertyName.hasPrefix("is") {
 			ret = (propertyValue == "true" || propertyValue == "1") ? true : false
@@ -194,7 +198,7 @@ class JSONableObject: NSObject, JSONable {
                     jsonValue = nativeValue.description
                 } else if let nativeValue = propValue as? String {
                     jsonValue = nativeValue
-				} else if let nativeValue = propValue as? NSFont {
+				} else if let nativeValue = propValue as? BWFont {
 					jsonValue = nativeValue.toCssString()
                 } else if self.isNumeric(propValue) {
                     jsonValue = propValue

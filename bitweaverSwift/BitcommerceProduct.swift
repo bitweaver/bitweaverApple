@@ -7,10 +7,15 @@
 //  Copyright (c) 2012 Viovio.com. All rights reserved.
 //
 
-import Cocoa
 import Alamofire
 import SwiftyJSON
 import os.log
+
+#if os(iOS)
+import UIKit
+#else
+import Cocoa
+#endif
 
 @objc(BitcommerceProduct)
 class BitcommerceProduct: BitweaverRestObject {
@@ -82,15 +87,15 @@ class BitcommerceProduct: BitweaverRestObject {
         }
     }
 
-    func getTypeImageDefault() -> NSImage {
-		return BWImage.init(named: "NSMultipleDocuments") ?? NSImage.init(size: NSSize.init(width: 32, height: 32))
+    func getTypeImageDefault() -> BWImage {
+        return BWImage.init(named: "NSMultipleDocuments") ?? BWImage.init()
     }
 
     func getTypeImage() -> BWImage {
         var ret: BWImage?
         if !productDefaultIcon.isEmpty {
             let imageUrl = URL.init(fileURLWithPath: productDefaultIcon)
-            ret = NSImage.init(named: imageUrl.deletingPathExtension().lastPathComponent) ?? nil
+            ret = BWImage.init(named: imageUrl.deletingPathExtension().lastPathComponent) ?? nil
         }
         return ret ?? getTypeImageDefault()
     }

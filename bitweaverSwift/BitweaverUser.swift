@@ -117,7 +117,7 @@ class BitweaverUser: BitweaverRestObject {
     }
     */
 
-	func register(_ authLogin: String, _ authPassword: String, handler: BitweaverLoginViewController, saveToKeyChain: Bool) {
+	func register(_ authLogin: String, _ authPassword: String, handler: BaseBitweaverLoginViewController, saveToKeyChain: Bool) {
 
         // Assume login was email field, update here for registration
         email = authLogin
@@ -164,7 +164,7 @@ class BitweaverUser: BitweaverRestObject {
         }
     }
 
-    func authenticate( authLogin: String, authPassword: String, handler: BitweaverLoginViewController, saveToKeyChain: Bool ) {
+    func authenticate( authLogin: String, authPassword: String, handler: BaseBitweaverLoginViewController, saveToKeyChain: Bool ) {
 
         var headers = gBitSystem.httpHeaders()
         let credentialData = "\(authLogin):\(authPassword)".data(using: String.Encoding.utf8)!
@@ -329,9 +329,13 @@ class KeychainHelper: NSObject {
 		let status = SecItemUpdate(keychainQuery as CFDictionary, [kSecValueDataValue: dataFromString] as CFDictionary)
 		
 		if status != errSecSuccess {
-			if let err = SecCopyErrorMessageString(status, nil) {
-				print("Read failed: \(err)")
-			}
+            if #available(iOS 11.3, *) {
+                if let err = SecCopyErrorMessageString(status, nil) {
+                    print("Read failed: \(err)")
+                }
+            } else {
+                // Fallback on earlier versions
+            }
 		}
 	}// end update password
 	
@@ -340,9 +344,13 @@ class KeychainHelper: NSObject {
 		
 		let status = SecItemDelete(keychainQuery as CFDictionary)
 		if status != errSecSuccess {
-			if let err = SecCopyErrorMessageString(status, nil) {
-				print("Remove failed: \(err)")
-			}
+            if #available(iOS 11.3, *) {
+                if let err = SecCopyErrorMessageString(status, nil) {
+                    print("Remove failed: \(err)")
+                }
+            } else {
+                // Fallback on earlier versions
+            }
 		}
 	}
 	
@@ -354,11 +362,15 @@ class KeychainHelper: NSObject {
 			let status = SecItemAdd(keychainQuery as CFDictionary, nil)
 			
 			if status != errSecSuccess {    // Always check the status
-				if let err = SecCopyErrorMessageString(status, nil) {
-					if (err as String) == "The specified item already exists in the keychain" {
-						updatePassword(service: service, account: account, data: data)
-					}
-				}
+                if #available(iOS 11.3, *) {
+                    if let err = SecCopyErrorMessageString(status, nil) {
+                        if (err as String) == "The specified item already exists in the keychain" {
+                            updatePassword(service: service, account: account, data: data)
+                        }
+                    }
+                } else {
+                    // Fallback on earlier versions
+                }
 			}
 		}
 	}
@@ -371,9 +383,13 @@ class KeychainHelper: NSObject {
 									kSecReturnData as String: true]
 		let status = SecItemDelete(query as CFDictionary)
 		if status != errSecSuccess {
-			if let err = SecCopyErrorMessageString(status, nil) {
-				print("Remove failed: \(err)")
-			}
+            if #available(iOS 11.3, *) {
+                if let err = SecCopyErrorMessageString(status, nil) {
+                    print("Remove failed: \(err)")
+                }
+            } else {
+                // Fallback on earlier versions
+            }
 		}
 	}
 	

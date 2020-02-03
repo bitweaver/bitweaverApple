@@ -15,6 +15,7 @@ typealias BWImage = UIImage
 typealias BWView = UIView
 typealias BWViewController = UIViewController
 typealias BWColor = UIColor
+typealias BWFont = UIFont
 #else
 import Cocoa
 
@@ -22,6 +23,7 @@ typealias BWImage = NSImage
 typealias BWView = NSView
 typealias BWViewController = NSViewController
 typealias BWColor = NSColor
+typealias BWFont = NSFont
 #endif
 
 extension NSObject {
@@ -446,5 +448,27 @@ extension NSAttributedString {
             print("error:", error)
             return nil
         }
+    }
+}
+
+extension BWFont {
+    func toCssString() -> String {
+        let ret = "font: "+pointSize.description+"pt "+fontName
+        return ret
+    }
+}
+
+extension UIColor {
+    func toHexString() -> String {
+        var r:CGFloat = 0
+        var g:CGFloat = 0
+        var b:CGFloat = 0
+        var a:CGFloat = 0
+        
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        
+        let rgb:Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
+        
+        return String(format: "#%06x", rgb)
     }
 }

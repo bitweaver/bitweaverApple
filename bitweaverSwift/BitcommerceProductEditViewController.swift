@@ -6,7 +6,11 @@
 //  Copyright © 2018 PrestoPhoto. All rights reserved.
 //
 
+#if os(iOS)
+import UIKit
+#else
 import Cocoa
+#endif
 
 class BitcommerceProductViewController: BWViewController {
 
