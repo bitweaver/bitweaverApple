@@ -25,15 +25,18 @@ class BitweaverLoginViewController: BaseBitweaverLoginViewController {
         dismiss(nil)
     }
 
+    @IBAction func signInButtonClicked(_ sender: Any) {
+    }
+    
+    @IBAction func registerButtonClicked(_ sender: Any) {
+    }
+    
+    @IBAction func cancelButtonClicked(_ sender: Any) {
+    }
+    
     @IBAction func signin(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
-            connectProgress.startAnimation(sender)
-			let completion: (Bool, String) -> Void = { [self] isSuccess, message in
-				if !isSuccess {
-					gBitUser.authenticate( authLogin: self.emailInput.stringValue, authPassword: self.passwordInput.stringValue, handler: self, saveToKeyChain: self.shouldSavePassword)
-				}
-			}
-			gBitUser.verifySession(completion: completion)
+            signIn( authLogin: self.emailInput.stringValue, authPassword: self.passwordInput.stringValue, handler: self, saveToKeyChain: self.shouldSavePassword)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
@@ -41,7 +44,7 @@ class BitweaverLoginViewController: BaseBitweaverLoginViewController {
 
     @IBAction func register(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
-			gBitUser.register( emailInput.stringValue, passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
+			register( emailInput.stringValue, passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
