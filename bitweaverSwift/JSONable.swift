@@ -100,7 +100,7 @@ class JSONableObject: NSObject, JSONable {
 	- parameter propertyName: The name of the property stored to json. This name is always suffixed with the native swift type that the value will be casted as.
 	- parameter propertyValue: The value to be casted as native swift type
 	*/
-	func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
+    func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
 		var ret: Any?
 		
 		// os_log( "%@ = %@", propertyName, stringValue )
@@ -113,20 +113,20 @@ class JSONableObject: NSObject, JSONable {
 		} else if propertyName.hasSuffix("Id") || propertyName.hasSuffix("Count") {
 			ret = Int(propertyValue)
 		} else if propertyName.hasSuffix("Point") {
-//			ret = NSPointFromString(propertyValue)
+            ret = CGPoint.init(fromString: propertyValue)
 		} else if propertyName.hasSuffix("Rect") {
-//			ret = NSRectFromString(propertyValue)
+            ret = CGRect.init(fromString: propertyValue)
 		} else if propertyName.hasSuffix("Font") {
-//			ret = NSFont.init(cssValue: propertyValue)
+            ret = BWFont.init(cssValue: propertyValue)
 		} else if propertyName.hasSuffix("Size") {
-//			ret = NSSizeFromString(propertyValue)
+            ret = CGSize.init(fromString: propertyValue)
 		} else if propertyName.hasSuffix("Uuid") {
 			ret = UUID.init(uuidString: propertyValue)
 		} else if propertyName.hasSuffix("Color") {
 			ret = BWColor.init(hexValue: propertyValue)
 		} else if propertyName.hasSuffix("Image") {
-			if let remoteUrl = URL.init(string: propertyValue) {
-//				ret = BWImage.init(byReferencing: remoteUrl )
+			if let remoteUrl = URL.init(string: propertyValue), let image = BWImage.init(contentsOf: remoteUrl) {
+				ret = image
 			}
 		} else if propertyName.hasPrefix("is") {
 			ret = (propertyValue == "true" || propertyValue == "1") ? true : false
