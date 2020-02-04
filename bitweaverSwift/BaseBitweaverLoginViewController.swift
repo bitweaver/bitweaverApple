@@ -36,7 +36,5 @@ class BaseBitweaverLoginViewController: BWViewController {
 
     func registrationResponse( success: Bool, message: String ) {
 
-    }
-    
-    
+    }   
 }

@@ -21,36 +21,26 @@ class BitweaverLoginViewController: BaseBitweaverLoginViewController {
 		return rememberPasswordButton.state == NSControl.StateValue.on
 	}
 
-    @IBAction func cancel(_ sender: Any) {
-        dismiss(nil)
-    }
-
     @IBAction func signInButtonClicked(_ sender: Any) {
-    }
-    
-    @IBAction func registerButtonClicked(_ sender: Any) {
-    }
-    
-    @IBAction func cancelButtonClicked(_ sender: Any) {
-    }
-    
-    @IBAction func signin(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             signIn( authLogin: self.emailInput.stringValue, authPassword: self.passwordInput.stringValue, handler: self, saveToKeyChain: self.shouldSavePassword)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
     }
-
-    @IBAction func register(_ sender: Any) {
+    
+    @IBAction func registerButtonClicked(_ sender: Any) {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
-			register( emailInput.stringValue, passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
+            register( emailInput.stringValue, passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
         } else {
             feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
         }
-
     }
-
+    
+    @IBAction func cancelButtonClicked(_ sender: Any) {
+        dismiss(nil)
+    }
+    
     override func viewDidAppear() {
         view.window?.styleMask.remove(.resizable)
     }
