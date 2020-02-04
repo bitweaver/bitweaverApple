@@ -452,6 +452,26 @@ extension NSAttributedString {
 }
 
 extension BWFont {
+    convenience init?(cssValue: String) {
+        var fontName = "Helvetica"
+        var fontSize: CGFloat = 18.0
+        
+        // Need to parse font here. This is very inflexible and only matches toCssString() data.
+        let stringComponents = cssValue.components(separatedBy: " ")
+        if stringComponents.count > 0 {
+            if stringComponents[0] == "font:" {
+                if stringComponents.count == 3 {
+                    fontName = stringComponents[2]
+                    if let pointSize = NumberFormatter().number(from: stringComponents[1].filter("01234567890.".contains)) {
+                        fontSize = CGFloat(pointSize.floatValue)
+                    }
+                }
+            }
+        }
+
+        self.init(name: fontName, size: fontSize)
+    }
+    
     func toCssString() -> String {
         let ret = "font: "+pointSize.description+"pt "+fontName
         return ret

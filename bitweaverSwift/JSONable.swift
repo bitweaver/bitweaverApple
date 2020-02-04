@@ -125,7 +125,7 @@ class JSONableObject: NSObject, JSONable {
 		} else if propertyName.hasSuffix("Color") {
 			ret = BWColor.init(hexValue: propertyValue)
 		} else if propertyName.hasSuffix("Image") {
-			if let remoteUrl = URL.init(string: propertyValue), let image = BWImage.init(contentsOf: remoteUrl) {
+			if let image = BWImage.init(contentsOfFile: propertyValue) { 
 				ret = image
 			}
 		} else if propertyName.hasPrefix("is") {
