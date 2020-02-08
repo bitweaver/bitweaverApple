@@ -21,6 +21,8 @@ class BaseBitweaverLoginViewController: BWViewController {
         let completion: (Bool, String) -> Void = { [self] isSuccess, message in
             if !isSuccess {
                 gBitUser.authenticate( authLogin: authLogin, authPassword: authPassword, handler: handler, saveToKeyChain: saveToKeyChain)
+            } else {
+                self.authenticationResponse(success: isSuccess, message: message)
             }
         }
         gBitUser.verifySession(completion: completion)
