@@ -26,6 +26,7 @@ typealias BWColor = NSColor
 typealias BWFont = NSFont
 #endif
 
+import WebKit
 extension NSObject {
     var myClassName: String {
         return NSStringFromClass(type(of: self))
@@ -534,4 +535,22 @@ extension CGSize {
             self.init()
         }
     }
+}
+
+extension WKWebView {
+    func loadWithCookies(_ urlRequest: URLRequest) {
+        setSharedCookies()
+        self.load(urlRequest)
+    }
+    
+    func setSharedCookies() {
+        for (cookie) in BitweaverUser.active.cookieArray {
+            if #available(OSX 10.13, *) {
+                self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+    }
+    
 }
