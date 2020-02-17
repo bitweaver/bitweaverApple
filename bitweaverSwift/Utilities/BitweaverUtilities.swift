@@ -545,12 +545,15 @@ extension WKWebView {
     
     func setSharedCookies() {
         for (cookie) in BitweaverUser.active.cookieArray {
+            #if os(iOS)
+                self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
+            #else
             if #available(OSX 10.13, *) {
                 self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
             } else {
                 // Fallback on earlier versions
             }
+            #endif
         }
     }
-    
 }

@@ -25,7 +25,7 @@ class BitweaverLoginViewController: BaseBitweaverLoginViewController {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             signIn( authLogin: self.emailInput.stringValue, authPassword: self.passwordInput.stringValue, handler: self, saveToKeyChain: self.shouldSavePassword)
         } else {
-            feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
+            feedbackLabel.stringValue = feedBackErrorMessage
         }
     }
     
@@ -33,7 +33,7 @@ class BitweaverLoginViewController: BaseBitweaverLoginViewController {
         if emailInput.stringValue.count > 0 && passwordInput.stringValue.count > 0 {
             register( emailInput.stringValue, passwordInput.stringValue, handler: self, saveToKeyChain: shouldSavePassword)
         } else {
-            feedbackLabel.stringValue = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
+            feedbackLabel.stringValue = feedBackErrorMessage
         }
     }
     

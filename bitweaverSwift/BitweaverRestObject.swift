@@ -245,7 +245,7 @@ class BitweaverRestObject: JSONableObject {
                 try jsonString.write(to: fileURL, atomically: false, encoding: .utf8)
                 completion?(self, true, errorMessage)
 
-                print( fileURL.description )
+//                print( fileURL.description )
             } catch {
                 /* error handling here */
                 errorMessage = "Failed to save JSON to "+fileURL.absoluteString

@@ -190,9 +190,17 @@ class BitcommerceProduct: BitweaverRestObject {
                         var productList = [String: BasePrintProduct]()
                         if let json = response.result.value {
                             json.forEach { (_, projectJson) in
-                                let newProduct = BasePrintProduct.init(fromJSON: projectJson)
-                                newProduct.cacheLocal()
-                                productList[newProduct.contentUuid.uuidString] = newProduct
+                                if let prodType = projectJson["product_type_class"].string {
+                                    if prodType == "BookPdfProduct" {
+                                        let pdfProd = PdfBookProduct.init(fromJSON: projectJson)
+                                        pdfProd.cacheLocal()
+                                        productList[pdfProd.contentUuid.uuidString] = pdfProd
+                                    } else {
+                                        let prod = BasePrintProduct.init(fromJSON: projectJson)
+                                        prod.cacheLocal()
+                                        productList[prod.contentUuid.uuidString] = prod
+                                    }
+                                }
                             }
                         }
                         completion( productList )
