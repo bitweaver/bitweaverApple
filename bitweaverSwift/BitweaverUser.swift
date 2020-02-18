@@ -35,7 +35,7 @@ class BitweaverUser: BitweaverRestObject {
     @objc dynamic var portraitPath = ""
     @objc dynamic var portraitUrl: URL?
     @objc dynamic var avatarPath = ""
-    @objc dynamic var avatarUrl: URL?
+    @objc dynamic var avatarUri: URL?
     @objc dynamic var logoPath = ""
     @objc dynamic var logoUrl: URL?
     @objc dynamic var firstName = ""
@@ -81,12 +81,12 @@ class BitweaverUser: BitweaverRestObject {
             "user_id": "userId",
             "login": "login",
             "last_login": "lastLogin",
-            "registration_date": "registrationDate"
+            "registration_date": "registrationDate",
+            "avatar_uri" : "avatarUri"
 /*
             "portrait_path" : "portraitPath",
             "portrait_url" : "portraitUrl",
             "avatar_path" : "avatarPath",
-            "avatar_url" : "avatarUrl",
             "logo_path" : "logoPath",
             "logo_url" : "logoUrl"
  */
@@ -102,6 +102,19 @@ class BitweaverUser: BitweaverRestObject {
         ]
         for (k, v) in super.getSendablePropertyMappings() { mappings[k] = v }
         return mappings
+    }
+    
+    func getProfilePicture() -> BWImage {
+        var ret = BWImage()
+        if let avatarPath = avatarUri {
+           do {
+               let avatarData = try Data.init(contentsOf: avatarPath)
+               if let userImage = BWImage.init(data: avatarData) {
+                   ret = userImage
+               }
+           } catch {}
+        }
+        return ret
     }
 
     func isAuthenticated() -> Bool {
