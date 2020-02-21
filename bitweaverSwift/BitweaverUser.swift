@@ -167,8 +167,9 @@ class BitweaverUser: BitweaverRestObject {
                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                             print("Data: \(utf8Text)")
                         }
-
                         errorMessage = "Registration failed. \n"+gBitSystem.httpError( response: response, request: response.request )
+                    case 500:
+                        errorMessage = "Internal server error. Contact support"
                     default:
                         errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
                     }
@@ -228,10 +229,11 @@ class BitweaverUser: BitweaverRestObject {
                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                             print("Data: \(utf8Text)")
                         }
-
                         // errorMessage = gBitSystem.httpError( response:response, request:response.request! )!
                         errorMessage = String(format: "Invalid login and password. Perhaps you need to register?\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
                         //gBitSystem.authenticationFailure(with: request, response: response, error: response.error, json: response.result.value)
+                    case 500:
+                        errorMessage = "Internal server error. Contact support"
                     default:
                         errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(response.response?.statusCode ?? 0), response.request?.url?.host ?? "")
                     }

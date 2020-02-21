@@ -182,6 +182,37 @@ extension URL {
 			return nil
 		}
 	}
+    
+    func creationDate() -> Date? {
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+            return fileAttributes[FileAttributeKey.creationDate] as? Date
+        } catch {
+            print("error getting creationDate from url " + error.localizedDescription)
+        }
+        return nil
+    }
+    
+    func lastModifiedDate() -> Date? {
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+            return fileAttributes[FileAttributeKey.modificationDate] as? Date
+        } catch {
+            print("error getting modificationDate from url " + error.localizedDescription)
+        }
+        return nil
+    }
+    
+    func fileSize() -> Int? {
+        var ret: Int?
+        do {
+            let resources = try self.resourceValues(forKeys:[.fileSizeKey])
+            ret = resources.fileSize!
+        } catch {
+            print("Error: \(error)")
+        }
+        return ret
+    }
 }
 
 extension Data {
