@@ -207,11 +207,27 @@ extension URL {
         var ret: Int?
         do {
             let resources = try self.resourceValues(forKeys:[.fileSizeKey])
-            ret = resources.fileSize!
+            ret = resources.fileSize
         } catch {
             print("Error: \(error)")
         }
         return ret
+    }
+    
+    /*
+     if pagesUrl.isNewerThanFile(url: pdfUrl) {
+        pages has been modified since the pdf was last generated
+        we need to generate a new pdf
+     }
+     */
+    func isNewerThanFile(at url: URL) -> Bool {
+        guard let sourceLastModified = lastModifiedDate(),
+            let destLastModified = url.lastModifiedDate()
+            else {return false}
+        if sourceLastModified.timeIntervalSince1970 > destLastModified.timeIntervalSince1970  {
+            return true
+        }
+        return false
     }
 }
 
