@@ -556,11 +556,11 @@ extension CGPoint {
 
 extension CGRect {
      init(fromString: String) {
-        var cleanStr = fromString.replacingOccurrences(of: "NSRect" , with: "")
-        cleanStr = cleanStr.replacingOccurrences(of: ":" , with: "")
-        cleanStr = cleanStr.replacingOccurrences(of: "{" , with: "")
-        cleanStr = cleanStr.replacingOccurrences(of: "}" , with: "")
-        cleanStr = cleanStr.replacingOccurrences(of: " " , with: "")
+        var cleanStr = fromString.replacingOccurrences(of: "NSRect", with: "")
+        cleanStr = cleanStr.replacingOccurrences(of: ":", with: "")
+        cleanStr = cleanStr.replacingOccurrences(of: "{", with: "")
+        cleanStr = cleanStr.replacingOccurrences(of: "}", with: "")
+        cleanStr = cleanStr.replacingOccurrences(of: " ", with: "")
         let components = cleanStr.components(separatedBy: ",")
         if components.count > 3, let x = NumberFormatter().number(from: components[0]) as? CGFloat, let y = NumberFormatter().number(from: components[1]) as? CGFloat, let width = NumberFormatter().number(from: components[2]) as? CGFloat, let height = NumberFormatter().number(from: components[3]) as? CGFloat {
             self.init(x: x, y: y, width: width, height: height)
