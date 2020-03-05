@@ -190,11 +190,9 @@ class BitcommerceProduct: BitweaverRestObject {
                         var productList = [String: BasePrintProduct]()
                         if let json = response.result.value {
                             json.forEach { (_, projectJson) in
-                                if let prodType = projectJson["product_type_class"].string {
-                                    let prod = BasePrintProduct.init(fromJSON: projectJson)
-                                    prod.cacheLocal()
-                                    productList[prod.contentUuid.uuidString] = prod
-                                }
+                                let prod = BasePrintProduct.init(fromJSON: projectJson)
+                                prod.cacheLocal()
+                                productList[prod.contentUuid.uuidString] = prod
                             }
                         }
                         completion( productList )

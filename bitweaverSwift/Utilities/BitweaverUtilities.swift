@@ -206,7 +206,7 @@ extension URL {
     func fileSize() -> Int? {
         var ret: Int?
         do {
-            let resources = try self.resourceValues(forKeys:[.fileSizeKey])
+            let resources = try self.resourceValues(forKeys: [.fileSizeKey])
             ret = resources.fileSize
         } catch {
             print("Error: \(error)")
@@ -224,7 +224,7 @@ extension URL {
         guard let sourceLastModified = lastModifiedDate(),
             let destLastModified = url.lastModifiedDate()
             else {return false}
-        if sourceLastModified.timeIntervalSince1970 > destLastModified.timeIntervalSince1970  {
+        if sourceLastModified.timeIntervalSince1970 > destLastModified.timeIntervalSince1970 {
             return true
         }
         return false
@@ -528,14 +528,14 @@ extension BWFont {
 
 extension BWColor {
     func toHexString() -> String {
-        var r:CGFloat = 0
-        var g:CGFloat = 0
-        var b:CGFloat = 0
-        var a:CGFloat = 0
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
         
         getRed(&r, green: &g, blue: &b, alpha: &a)
         
-        let rgb:Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
+        let rgb: Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
         
         return String(format: "#%06x", rgb)
     }

@@ -82,7 +82,7 @@ class BitweaverUser: BitweaverRestObject {
             "login": "login",
             "last_login": "lastLogin",
             "registration_date": "registrationDate",
-            "avatar_uri" : "avatarUri"
+            "avatar_uri": "avatarUri"
 /*
             "portrait_path" : "portraitPath",
             "portrait_url" : "portraitUrl",
