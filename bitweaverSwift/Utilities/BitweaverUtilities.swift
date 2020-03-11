@@ -238,6 +238,27 @@ extension Data {
 	}
 }
 
+extension Date {
+    var shortString: String {
+        return DateFormatter.localizedString(
+            from: self,
+            dateStyle: .short,
+            timeStyle: .short)
+    }
+    var mediumString: String {
+        return DateFormatter.localizedString(
+            from: self,
+            dateStyle: .medium,
+            timeStyle: .medium)
+    }
+    var longString: String {
+        return DateFormatter.localizedString(
+            from: self,
+            dateStyle: .long,
+            timeStyle: .long)
+    }
+}
+
 extension Formatter {
 	static let iso8601: DateFormatter = {
 		let formatter = DateFormatter()
