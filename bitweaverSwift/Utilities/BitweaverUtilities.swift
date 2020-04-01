@@ -184,32 +184,43 @@ extension URL {
 	}
     
     func creationDate() -> Date? {
-        do {
-            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
-            return fileAttributes[FileAttributeKey.creationDate] as? Date
-        } catch {
-            print("error getting creationDate from url " + error.localizedDescription)
+        var ret: Date?
+        if startAccessingSecurityScopedResource() {
+            do {
+                let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+                ret = fileAttributes[FileAttributeKey.creationDate] as? Date
+            } catch {
+                print("error getting creationDate from url " + error.localizedDescription)
+            }
+            stopAccessingSecurityScopedResource()
         }
-        return nil
+        return ret
     }
     
     func lastModifiedDate() -> Date? {
-        do {
-            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
-            return fileAttributes[FileAttributeKey.modificationDate] as? Date
-        } catch {
-            print("error getting modificationDate from url " + error.localizedDescription)
+        var ret: Date?
+        if startAccessingSecurityScopedResource() {
+            do {
+                let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+                ret = fileAttributes[FileAttributeKey.modificationDate] as? Date
+            } catch {
+                print("error getting modificationDate from url " + error.localizedDescription)
+            }
+            stopAccessingSecurityScopedResource()
         }
-        return nil
+        return ret
     }
     
     func fileSize() -> Int? {
         var ret: Int?
-        do {
-            let resources = try self.resourceValues(forKeys: [.fileSizeKey])
-            ret = resources.fileSize
-        } catch {
-            print("Error: \(error)")
+        if startAccessingSecurityScopedResource() {
+            do {
+                let resources = try self.resourceValues(forKeys: [.fileSizeKey])
+                ret = resources.fileSize
+            } catch {
+                print("Error: \(error)")
+            }
+            stopAccessingSecurityScopedResource()
         }
         return ret
     }
@@ -332,7 +343,7 @@ extension String {
 	}
     
     var hexadecimal: Data? {
-        var data = Data(capacity: characters.count / 2)
+        var data = Data(capacity: count / 2)
 
         let regex = try? NSRegularExpression(pattern: "[0-9a-f]{1,2}", options: .caseInsensitive)
         regex?.enumerateMatches(in: self, range: NSRange(startIndex..., in: self)) { match, _, _ in
