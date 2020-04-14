@@ -185,42 +185,33 @@ extension URL {
     
     func creationDate() -> Date? {
         var ret: Date?
-        if startAccessingSecurityScopedResource() {
-            do {
-                let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
-                ret = fileAttributes[FileAttributeKey.creationDate] as? Date
-            } catch {
-                print("error getting creationDate from url " + error.localizedDescription)
-            }
-            stopAccessingSecurityScopedResource()
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+            ret = fileAttributes[FileAttributeKey.creationDate] as? Date
+        } catch {
+            print("error getting creationDate from url " + error.localizedDescription)
         }
         return ret
     }
     
     func lastModifiedDate() -> Date? {
         var ret: Date?
-        if startAccessingSecurityScopedResource() {
-            do {
-                let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
-                ret = fileAttributes[FileAttributeKey.modificationDate] as? Date
-            } catch {
-                print("error getting modificationDate from url " + error.localizedDescription)
-            }
-            stopAccessingSecurityScopedResource()
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+            ret = fileAttributes[FileAttributeKey.modificationDate] as? Date
+        } catch {
+            print("error getting modificationDate from url " + error.localizedDescription)
         }
         return ret
     }
     
     func fileSize() -> Int? {
         var ret: Int?
-        if startAccessingSecurityScopedResource() {
-            do {
-                let resources = try self.resourceValues(forKeys: [.fileSizeKey])
-                ret = resources.fileSize
-            } catch {
-                print("Error: \(error)")
-            }
-            stopAccessingSecurityScopedResource()
+        do {
+            let resources = try self.resourceValues(forKeys: [.fileSizeKey])
+            ret = resources.fileSize
+        } catch {
+            print("Error: \(error)")
         }
         return ret
     }
