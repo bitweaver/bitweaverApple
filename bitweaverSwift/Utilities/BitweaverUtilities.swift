@@ -16,23 +16,6 @@ typealias BWView = UIView
 typealias BWViewController = UIViewController
 typealias BWColor = UIColor
 typealias BWFont = UIFont
-
-public extension UIImage {
-    convenience init(size: CGSize) {
-        let rect = CGRect(origin: .zero, size: size)
-        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
-        UIRectFill(rect)
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        if let cgImage = image?.cgImage {
-            self.init(cgImage: cgImage)
-        } else {
-            self.init()
-        }
-    }
-}
-
 #elseif os(macOS)
 import Cocoa
 

@@ -14,6 +14,76 @@ extension BWViewController {
     
 }
 
+public extension UIImage {
+    convenience init(size: CGSize) {
+        let rect = CGRect(origin: .zero, size: size)
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
+        UIRectFill(rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        if let cgImage = image?.cgImage {
+            self.init(cgImage: cgImage)
+        } else {
+            self.init()
+        }
+    }
+    convenience init?(contentsOf url: URL) {
+        self.init()
+        if url.isFileURL {
+            self.init(contentsOfFile: url.path)
+        } else {
+            if let data = try? Data(contentsOf: url) {
+                self.init(data: data)
+            }
+        }
+    }
+    @discardableResult
+    func saveAsPNG(url: URL) -> Bool {
+        guard let imageData = self.pngData() else {
+            print("failed to get PNG representation. url: \(url)")
+            return false
+        }
+        do {
+            try imageData.write(to: url)
+            return true
+        } catch {
+            print("failed to write to disk. url: \(url)")
+            return false
+        }
+    }
+    
+    @discardableResult
+    func toDataJPG() -> Data? {
+        return self.jpegData(compressionQuality: 0.95)
+    }
+    
+    @discardableResult
+    func saveAsJPG(url: URL) -> Bool {
+        do {
+            guard let imageData = toDataJPG() else {return false}
+            try imageData.write(to: url)
+            return true
+        } catch {
+            BitweaverAppBase.log(level: BitweaverAppBase.LogLevel.Error, "failed to write to disk. url: %@", url.absoluteString)
+            return false
+        }
+    }
+    
+}
+
+public extension UIColor {
+    var inverted: UIColor {
+        var a: CGFloat = 0.0, r: CGFloat = 0.0, g: CGFloat = 0.0, b: CGFloat = 0.0
+        return getRed(&r, green: &g, blue: &b, alpha: &a) ? UIColor(red: 1.0-r, green: 1.0-g, blue: 1.0-b, alpha: a) : .black
+    }
+    var alphaComponent: CGFloat {
+        var a: CGFloat = 0.0, r: CGFloat = 0.0, g: CGFloat = 0.0, b: CGFloat = 0.0
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        return a
+    }
+}
+
 extension URL {
     func mimeType() -> String {
         if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue() {
