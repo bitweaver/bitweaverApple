@@ -60,10 +60,6 @@ extension NSTabView {
     }
 }
 
-extension NSSize {
-    var ratio: CGFloat { return width / height }
-}
-
 extension BWImage {
     var cgImage: CGImage? {
         var proposedRect = CGRect(origin: .zero, size: size)
