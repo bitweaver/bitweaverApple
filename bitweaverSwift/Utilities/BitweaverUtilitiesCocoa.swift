@@ -60,6 +60,22 @@ extension NSTabView {
     }
 }
 
+extension NSImage {
+    // Support for NSImage.init(cgImage)
+    convenience init(cgImage: CGImage) {
+        self.init(cgImage: cgImage, size: CGSize.zero)
+    }
+    
+    convenience init?(contentsOf path: String) {
+        let bundleUrl = URL.init(fileURLWithPath: path)
+        if FileManager.default.fileExists(atPath: bundleUrl.path) {
+            self.init(contentsOf: bundleUrl)
+        } else {
+            self.init()
+        }
+    }
+}
+
 extension BWImage {
     var cgImage: CGImage? {
         var proposedRect = CGRect(origin: .zero, size: size)
@@ -68,7 +84,7 @@ extension BWImage {
                        context: nil,
                        hints: nil)
     }
-    
+
     @discardableResult
     func saveAsPNG(url: URL) -> Bool {
         guard let tiffData = tiffRepresentation else {
