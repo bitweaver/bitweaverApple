@@ -586,7 +586,7 @@ extension CGPoint {
         var cleanStr = fromString.replacingOccurrences(of: "NSPoint: {", with: "")
         cleanStr = cleanStr.replacingOccurrences(of: "}", with: "")
         let components = cleanStr.components(separatedBy: ",")
-        if components.count > 0, let x = NumberFormatter().number(from: components[0]) as? CGFloat, let y = NumberFormatter().number(from: components[1]) as? CGFloat {
+        if components.count > 0, let x = Double(components[0]), let y = Double(components[1]) {
             self.init(x: x, y: y)
         } else {
             self.init()
@@ -602,7 +602,7 @@ extension CGRect {
         cleanStr = cleanStr.replacingOccurrences(of: "}", with: "")
         cleanStr = cleanStr.replacingOccurrences(of: " ", with: "")
         let components = cleanStr.components(separatedBy: ",")
-        if components.count > 3, let x = NumberFormatter().number(from: components[0]) as? CGFloat, let y = NumberFormatter().number(from: components[1]) as? CGFloat, let width = NumberFormatter().number(from: components[2]) as? CGFloat, let height = NumberFormatter().number(from: components[3]) as? CGFloat {
+        if components.count > 3, let x = Double(components[0]), let y = Double(components[1]), let width = Double(components[2]), let height = Double(components[3]) {
             self.init(x: x, y: y, width: width, height: height)
         } else {
             self.init()
@@ -616,7 +616,7 @@ extension CGSize {
         cleanStr = cleanStr.replacingOccurrences(of: "}", with: "")
         cleanStr = cleanStr.replacingOccurrences(of: " ", with: "")
         let components = cleanStr.components(separatedBy: ",")
-        if components.count > 0, let width = NumberFormatter().number(from: components[0]) as? CGFloat, let height = NumberFormatter().number(from: components[1]) as? CGFloat {
+        if components.count > 0, let width = Double(components[0]), let height = Double(components[1]) {
             self.init(width: width, height: height)
         } else {
             self.init()
