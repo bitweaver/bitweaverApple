@@ -585,6 +585,7 @@ extension CGPoint {
      init(fromString: String) {
         var cleanStr = fromString.replacingOccurrences(of: "NSPoint: {", with: "")
         cleanStr = cleanStr.replacingOccurrences(of: "}", with: "")
+        cleanStr = cleanStr.replacingOccurrences(of: " ", with: "")
         let components = cleanStr.components(separatedBy: ",")
         if components.count > 0, let x = Double(components[0]), let y = Double(components[1]) {
             self.init(x: x, y: y)
