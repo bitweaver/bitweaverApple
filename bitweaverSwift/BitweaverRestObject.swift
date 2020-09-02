@@ -75,7 +75,14 @@ class BitweaverRestObject: JSONableObject {
         return nil
     }
 */
-
+    func getFile(for fileName: String, in subDirectory: String) -> URL? {
+        var ret: URL?
+        if let contentDir = localPath?.appendingPathComponent(subDirectory), createDirectory(contentDir) {
+            return contentDir.appendingPathComponent(fileName)
+        }
+        return ret
+    }
+    
     func getFile(for fileName: String) -> URL? {
 //        if let contentDir = (gBitUser.isAuthenticated() && primaryId != nil) ? cachePath : localPath, createDirectory(contentDir) {
         if let contentDir = localPath, createDirectory(contentDir) {
