@@ -78,7 +78,7 @@ class BitweaverRestObject: JSONableObject {
     func getFile(for fileName: String, in subDirectory: String) -> URL? {
         var ret: URL?
         if let contentDir = localPath?.appendingPathComponent(subDirectory), createDirectory(contentDir) {
-            return contentDir.appendingPathComponent(fileName)
+            ret = contentDir.appendingPathComponent(fileName)
         }
         return ret
     }
