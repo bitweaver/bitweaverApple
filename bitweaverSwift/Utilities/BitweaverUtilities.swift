@@ -196,11 +196,8 @@ extension URL {
     
     func lastModifiedDate() -> Date? {
         var ret: Date?
-        do {
-            let fileAttributes = try FileManager.default.attributesOfItem(atPath: self.path)
+        if let fileAttributes = try? FileManager.default.attributesOfItem(atPath: self.path) {
             ret = fileAttributes[FileAttributeKey.modificationDate] as? Date
-        } catch {
-            print("error getting modificationDate from url " + error.localizedDescription)
         }
         return ret
     }
