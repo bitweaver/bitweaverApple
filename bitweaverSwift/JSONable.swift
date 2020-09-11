@@ -165,7 +165,7 @@ class JSONableObject: NSObject, JSONable {
                 }
             }
         } catch {
-			print("setProperty("+propertyName+") error ocurred: \(error)")
+//			print("setProperty("+propertyName+") error ocurred: \(error)")
         }
     }
     
@@ -207,8 +207,8 @@ class JSONableObject: NSObject, JSONable {
                 }
             }
         } catch {
-			let propValueDescription = String(format: "%@", [propValue])
-			print("jsonValue("+propValueDescription+") error ocurred: \(error) ")
+//			let propValueDescription = String(format: "%@", [propValue])
+//			print("jsonValue("+propValueDescription+") error ocurred: \(error) ")
         }
 
         return jsonValue
