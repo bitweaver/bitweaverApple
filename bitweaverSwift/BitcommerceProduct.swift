@@ -27,6 +27,8 @@ class BitcommerceProduct: BitweaverRestObject {
     @objc dynamic var productDefaultIcon: String = ""
     var enabled: [Bool] = []
     var images: [String: String] = [:]
+    
+    @objc dynamic var environmentInfo: [String: String] = [:]
 
     override var remoteUri: String { return gBitSystem.apiBaseUri+"bookstore/"+(productId?.description ?? contentUuid.uuidString) }
 
@@ -34,6 +36,7 @@ class BitcommerceProduct: BitweaverRestObject {
         super.initProperties()
         contentTypeGuid = "bitproduct"
         remoteTypeClass = getRemoteTypeClass()
+        environmentInfo = gBitSystem.appSupportString
     }
 
     func getRemoteTypeClass() -> String {
@@ -45,7 +48,8 @@ class BitcommerceProduct: BitweaverRestObject {
             "product_id": "productId",
             "product_model": "productModel",
             "product_type_name": "productTypeName",
-            "product_type_icon": "productDefaultIcon"
+            "product_type_icon": "productDefaultIcon",
+            "environment_info": "environmentInfo"
         ]
 
         for (k, v) in super.getRemotePropertyMappings() { mappings[k] = v }

@@ -44,6 +44,79 @@ class BitweaverAppBase: NSObject {
         apiSecret = Bundle.main.object(forInfoDictionaryKey: "BW_API_SECRET") as? String ?? ""
     }
 
+    //return os major version 13,14,15
+    var osVersion: String {
+        return osMajorVersion.description+"."+osMinorVersion.description+"."+osPatchVersion.description
+    }
+    
+    var osMajorVersion: Int {
+        return ProcessInfo.processInfo.operatingSystemVersion.majorVersion
+    }
+    
+    var osMinorVersion: Int {
+        return ProcessInfo.processInfo.operatingSystemVersion.minorVersion
+    }
+    
+    var osPatchVersion: Int {
+        return ProcessInfo.processInfo.operatingSystemVersion.patchVersion
+    }
+    
+    var buildVersion: String {
+        return (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "Unknown"
+    }
+    
+    var appVersion: String {
+        return  (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "Unknown"
+    }
+    
+    var deviceUsername: String {
+        #if os(iOS)
+        var device = "iPhone"
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            device = "iPad"
+        }
+        var name = UIDevice.current.name.replacingOccurrences(of: device, with: "")
+        name = name.replacingOccurrences(of: "’s ", with: "")
+        return name
+        #else
+        return NSFullUserName()
+        #endif
+    }
+    
+    var hardwareModel: String {
+        var ret = "Unknown"
+        #if os(iOS)
+        let device = UIDevice.current
+        ret = device.model
+        #else
+        var size = 0
+        sysctlbyname("hw.model", nil, &size, nil, 0)
+        var machine = [CChar](repeating: 0, count: size)
+        sysctlbyname("hw.model", &machine, &size, nil, 0)
+        ret = String(cString: machine)
+        #endif
+        
+        return ret
+    }
+    
+    var isOnWifi: Bool {
+        return NetworkReachabilityManager()!.isReachableOnEthernetOrWiFi
+    }
+    
+    var hasNetworkConnection: Bool {
+        return NetworkReachabilityManager()!.isReachable
+    }
+
+    var appSupportString: [String: String] {
+        return [
+            "app_version": appVersion,
+            "build_version": buildVersion,
+            "hardware_model": hardwareModel,
+            "os_version": osVersion,
+            "memory": String( (Int(ProcessInfo.processInfo.physicalMemory) / (1024 * 1024 * 1024) ).description ) + " GB"
+        ]
+    }
+    
     func httpHeaders() -> [String: String] {
         var headers: [String: String] = [:]
         if authLogin.count > 0 && authPassword.count > 0 {
