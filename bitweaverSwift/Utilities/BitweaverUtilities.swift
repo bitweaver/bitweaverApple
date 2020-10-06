@@ -420,8 +420,7 @@ extension BWColor {
         let red   = CGFloat(r) / 255.0
         let green = CGFloat(g) / 255.0
         let blue  = CGFloat(b) / 255.0
-
-        self.init(red: red, green: green, blue: blue, alpha: 1)
+        self.init(calibratedRed: red, green: green, blue: blue, alpha: 1.0)
     }
     
     func toHexString() -> String {
