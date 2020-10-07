@@ -28,7 +28,7 @@ class BitcommerceProduct: BitweaverRestObject {
     var enabled: [Bool] = []
     var images: [String: String] = [:]
     
-    @objc dynamic var environmentInfo: [String: String] = [:]
+    @objc dynamic var environmentInfoHash: [String: String] = [:]
 
     override var remoteUri: String { return gBitSystem.apiBaseUri+"bookstore/"+(productId?.description ?? contentUuid.uuidString) }
 
@@ -36,7 +36,7 @@ class BitcommerceProduct: BitweaverRestObject {
         super.initProperties()
         contentTypeGuid = "bitproduct"
         remoteTypeClass = getRemoteTypeClass()
-        environmentInfo = gBitSystem.appSupportString
+        environmentInfoHash = gBitSystem.appSupportHash
     }
 
     func getRemoteTypeClass() -> String {
@@ -49,11 +49,24 @@ class BitcommerceProduct: BitweaverRestObject {
             "product_model": "productModel",
             "product_type_name": "productTypeName",
             "product_type_icon": "productDefaultIcon",
-            "environment_info": "environmentInfo"
+            "environment_info_hash": "environmentInfoHash"
         ]
 
         for (k, v) in super.getRemotePropertyMappings() { mappings[k] = v }
         return mappings
+    }
+    
+    override func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
+        var ret: Any?
+        if propertyName == "environmentInfo" {
+            ret = gBitSystem.appSupportHash
+        }
+        if propertyName.hasSuffix("Pt"), responds(to: NSSelectorFromString(propertyName)) {
+            ret = Double(propertyValue)
+        } else {
+            ret = super.getNativeValue(propertyName: propertyName, propertyValue: propertyValue)
+        }
+        return ret
     }
 
     override func getSendablePropertyMappings() -> [String: String] {

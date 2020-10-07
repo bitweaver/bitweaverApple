@@ -107,7 +107,7 @@ class BitweaverAppBase: NSObject {
         return NetworkReachabilityManager()!.isReachable
     }
 
-    var appSupportString: [String: String] {
+    var appSupportHash: [String: String] {
         return [
             "app_version": appVersion,
             "build_version": buildVersion,

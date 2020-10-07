@@ -130,6 +130,8 @@ class JSONableObject: NSObject, JSONable {
 			}
 		} else if propertyName.hasPrefix("is") {
 			ret = (propertyValue == "true" || propertyValue == "1") ? true : false
+        } else if propertyName.hasSuffix("Hash") {
+            ret = [: ]
 		} else {
 			ret = propertyValue
 		}
