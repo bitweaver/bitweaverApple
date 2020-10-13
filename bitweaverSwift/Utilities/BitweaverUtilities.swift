@@ -399,15 +399,20 @@ extension CGSize {
 
 extension BWColor {
     convenience init(hexValue: String) {
-        var checkedHex: String = hexValue.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        var alphaValue = 1.0
+        let cleanString = hexValue.replacingOccurrences(of: "#", with: "")
+        var colorString = cleanString
+        if cleanString.count == 8 {
+            let alphaHex = cleanString.suffix(2)
+            alphaValue = Double(UInt8(alphaHex, radix: 16) ?? 0) / 255.0
+            colorString = String(cleanString.prefix(6))
+        }
+        
+        var checkedHex: String = colorString
         if checkedHex.isEmpty {
-            checkedHex = "#FFFFFF"
+            checkedHex = "FFFFFF"
         }
         let scanner = Scanner(string: checkedHex)
-
-        if checkedHex.hasPrefix("#") {
-            scanner.scanLocation = 1
-        }
 
         var color: UInt32 = 0
         scanner.scanHexInt32(&color)
@@ -420,7 +425,7 @@ extension BWColor {
         let red   = CGFloat(r) / 255.0
         let green = CGFloat(g) / 255.0
         let blue  = CGFloat(b) / 255.0
-        self.init(calibratedRed: red, green: green, blue: blue, alpha: 1.0)
+        self.init(calibratedRed: red, green: green, blue: blue, alpha: CGFloat(alphaValue))
     }
     
     func toHexString() -> String {
@@ -432,10 +437,15 @@ extension BWColor {
         if let rgbColor = self.usingColorSpaceName(.calibratedRGB) {
             rgbColor.getRed(&r, green: &g, blue: &b, alpha: &a)
         }
-        
+        let wholeAlpha = a * 255.0
+        var alphaStr = String(Int(wholeAlpha), radix: 16)
+        if wholeAlpha < 16.0 {
+            alphaStr = "0" + alphaStr
+        }        
         let rgb: Int = (Int)(r*255)<<16 | (Int)(g*255)<<8 | (Int)(b*255)<<0
+        let rgbStr = String(format: "#%06x", rgb)
         
-        return String(format: "#%06x", rgb)
+        return rgbStr.appending(alphaStr)
     }
 }
 
