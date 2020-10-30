@@ -130,6 +130,11 @@ class BitweaverAppBase: NSObject {
         return headers
     }
 
+    static func logMessage(_ message: String, fileName: String = #file, functionName: String = #function, lineNumber: Int = #line, columnNumber: Int = #column) {
+        
+        print("🤡 \(message) \n## \(fileName) - \(functionName) at line \(lineNumber)[\(columnNumber)]")
+    }
+    
     func httpError(response: DataResponse<JSON>, request: URLRequest?) -> String {
         var errorMessage = ""
         var logMessage = ""
