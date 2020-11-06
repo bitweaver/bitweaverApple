@@ -260,6 +260,13 @@ extension Date {
             dateStyle: .long,
             timeStyle: .long)
     }
+    
+    func updateYear(year: Int) -> Date? {
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([Calendar.Component.month, Calendar.Component.day, Calendar.Component.year], from: self)
+        components.setValue(year, for: Calendar.Component.year)
+        return calendar.date(from: components)
+    }
 }
 
 extension Formatter {
