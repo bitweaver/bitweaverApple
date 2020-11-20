@@ -267,6 +267,11 @@ extension Date {
         components.setValue(year, for: Calendar.Component.year)
         return calendar.date(from: components)
     }
+
+	func convertTimeZone(to toTimeZone: TimeZone, from fromTimeZone: TimeZone = .current) -> Date {
+		let delta = TimeInterval(toTimeZone.secondsFromGMT(for: self) - fromTimeZone.secondsFromGMT(for: self))
+		return addingTimeInterval(delta)
+	}
 }
 
 extension Formatter {
