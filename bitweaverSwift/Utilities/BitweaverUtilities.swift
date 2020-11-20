@@ -242,6 +242,12 @@ extension Data {
 }
 
 extension Date {
+    var shortDate: String {
+        return DateFormatter.localizedString(
+            from: self,
+            dateStyle: .short,
+            timeStyle: .none)
+    }
     var shortString: String {
         return DateFormatter.localizedString(
             from: self,
