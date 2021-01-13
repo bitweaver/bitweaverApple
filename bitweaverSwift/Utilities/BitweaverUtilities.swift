@@ -233,18 +233,8 @@ extension URL {
         return path.contains("/.Trash/")
     }
     
-    func hasAccessPermission() -> Bool {
-        var ret = true
-        var unsafeUrl: Unmanaged<CFURL>?
-        var error: Unmanaged<CFError>?
-        let enumerator = CFURLEnumeratorCreateForDirectoryURL(nil, self as CFURL?, .skipInvisibles, [] as CFArray)
-        var _ = CFURLEnumeratorGetNextURL(enumerator, &unsafeUrl, &error)
-        if let e = error, let code = ((e.takeRetainedValue() as? Error) as? NSError)?.code {
-            if code == 257 { //don't have permission
-               ret = false
-            }
-        }
-        return ret
+    func isReadable() -> Bool {
+        return FileManager.default.isReadableFile(atPath: self.path)
     }
 }
 
