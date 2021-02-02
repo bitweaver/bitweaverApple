@@ -298,14 +298,17 @@ extension Formatter {
 extension String {
     
     func md5() -> String {
-        let messageData = data(using:.utf8)!
-        var digestData = Data(count: Int(CC_MD5_DIGEST_LENGTH))
-        _ = digestData.withUnsafeMutableBytes {digestBytes in
-            messageData.withUnsafeBytes {messageBytes in
-                CC_MD5(messageBytes, CC_LONG(messageData.count), digestBytes)
+        if let messageData = data(using: .utf8) {
+            var digestData = Data(count: Int(CC_MD5_DIGEST_LENGTH))
+            _ = digestData.withUnsafeMutableBytes {digestBytes in
+                messageData.withUnsafeBytes {messageBytes in
+                    CC_MD5(messageBytes, CC_LONG(messageData.count), digestBytes)
+                }
             }
-        }
-        return digestData.base64EncodedString()
+            return digestData.base64EncodedString()
+        } else {
+            return ""
+    	}
     }
     
     func toDateISO8601() -> Date? {
