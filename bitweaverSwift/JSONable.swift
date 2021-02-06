@@ -156,18 +156,12 @@ class JSONableObject: NSObject, JSONable {
 	}
 	
     private func setProperty(_ propertyName: String, _ propertyValue: Any ) {
-        do {
-            try ObjC.catchException {
-				if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
-					if let nativeValue = self.getNativeValue(propertyName: propertyName, propertyValue: stringValue) {
-						self.setValue(nativeValue, forKey: propertyName )
-					}
-                } else {
-                    BitweaverAppBase.log(level: BitweaverAppBase.LogLevel.Warning, "set property failed: %@ = %@", propertyName, propertyValue)
-                }
+        if let stringValue = propertyValue as? String, self.responds(to: NSSelectorFromString(propertyName)) {
+            if let nativeValue = self.getNativeValue(propertyName: propertyName, propertyValue: stringValue) {
+                self.setValue(nativeValue, forKey: propertyName )
             }
-        } catch {
-//			print("setProperty("+propertyName+") error ocurred: \(error)")
+        } else {
+            BitweaverAppBase.log(level: BitweaverAppBase.LogLevel.Warning, "set property failed: %@ = %@", propertyName, propertyValue)
         }
     }
     
@@ -184,33 +178,27 @@ class JSONableObject: NSObject, JSONable {
      */
     private func jsonValue(_ propValue: Any ) -> Any {
         var jsonValue: Any = ""
-        do {
-            try ObjC.catchException {
-                if let jsonObject = propValue as? JSONableObject {
-                    jsonValue = jsonObject.toJsonHash()
-                } else if let nativeValue = propValue as? UUID {
-                    jsonValue = nativeValue.uuidString
-                } else if let nativeValue = propValue as? URL {
-                    jsonValue = nativeValue.absoluteString
-                } else if let nativeValue = propValue as? Date {
-                    jsonValue = nativeValue.toStringISO8601()!
-                } else if let nativeValue = propValue as? BWColor {
-                    jsonValue = nativeValue.toHexString()
-                } else if let nativeValue = propValue as? NSNumber, nativeValue.floatValue != 0 {
-                    jsonValue = nativeValue.description
-                } else if let nativeValue = propValue as? String {
-                    jsonValue = nativeValue
-				} else if let nativeValue = propValue as? BWFont {
-					jsonValue = nativeValue.toCssString()
-                } else if self.isNumeric(propValue) {
-                    jsonValue = propValue
-                } else {
-                    jsonValue = self.stringFromAny( propValue )
-                }
-            }
-        } catch {
-//			let propValueDescription = String(format: "%@", [propValue])
-//			print("jsonValue("+propValueDescription+") error ocurred: \(error) ")
+        
+        if let jsonObject = propValue as? JSONableObject {
+            jsonValue = jsonObject.toJsonHash()
+        } else if let nativeValue = propValue as? UUID {
+            jsonValue = nativeValue.uuidString
+        } else if let nativeValue = propValue as? URL {
+            jsonValue = nativeValue.absoluteString
+        } else if let nativeValue = propValue as? Date {
+            jsonValue = nativeValue.toStringISO8601()!
+        } else if let nativeValue = propValue as? BWColor {
+            jsonValue = nativeValue.toHexString()
+        } else if let nativeValue = propValue as? NSNumber, nativeValue.floatValue != 0 {
+            jsonValue = nativeValue.description
+        } else if let nativeValue = propValue as? String {
+            jsonValue = nativeValue
+        } else if let nativeValue = propValue as? BWFont {
+            jsonValue = nativeValue.toCssString()
+        } else if self.isNumeric(propValue) {
+            jsonValue = propValue
+        } else {
+            jsonValue = self.stringFromAny( propValue )
         }
 
         return jsonValue
