@@ -1,9 +1,8 @@
 //
 //  BitweaverUtilitiesUIKit.swift
-//  PrestoPhoto iOS
 //
 //  Created by Caleb Mitcler on 1/15/20.
-//  Copyright © 2020 PrestoPhoto. All rights reserved.
+//  Copyright © 2020 bitweaver.org LGPL license.
 //
 
 import Foundation

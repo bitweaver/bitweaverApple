@@ -1,9 +1,8 @@
 //
 //  BitweaverUtilities.swift
-//  PrestoPhoto
 //
 //  Created by Christian Fowler on 9/27/18.
-//  Copyright © 2018 PrestoPhoto. All rights reserved.
+//  Copyright © 2020 bitweaver.org LGPL license.
 //
 
 // App wide alias for iOS and macOS cross platform convenience

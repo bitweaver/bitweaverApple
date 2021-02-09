@@ -1,9 +1,8 @@
 //
 //  JSONable.swift
-//  PrestoPhoto
 //
 //  Created by Christian Fowler on 5/20/19.
-//  Copyright © 2019 PrestoPhoto. All rights reserved.
+//  Copyright © 2020 bitweaver.org LGPL license.
 //
 
 import Foundation

@@ -1,9 +1,8 @@
 //
 //  BitweaverLoginViewController.swift
-//  PrestoPhoto
 //
 //  Created by Christian Fowler on 9/22/18.
-//  Copyright © 2018 PrestoPhoto. All rights reserved.
+//  Copyright © 2020 bitweaver.org LGPL license.
 //
 
 import Cocoa
