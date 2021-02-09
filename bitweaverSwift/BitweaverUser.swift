@@ -143,7 +143,7 @@ class BitweaverUser: BitweaverRestObject {
 		parameters["register"] = "y"
         parameters["email"] = authLogin
         parameters["password"] = authPassword
-        parameters["real_name"] = PrestoSystem.shared.deviceUsername
+        parameters["real_name"] = BitweaverAppBase.deviceUsername
 
         let headers = gBitSystem.httpHeaders()
 

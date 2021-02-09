@@ -69,20 +69,6 @@ class BitweaverAppBase: NSObject {
         return  (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "Unknown"
     }
     
-    var deviceUsername: String {
-        #if os(iOS)
-        var device = "iPhone"
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            device = "iPad"
-        }
-        var name = UIDevice.current.name.replacingOccurrences(of: device, with: "")
-        name = name.replacingOccurrences(of: "’s ", with: "")
-        return name
-        #else
-        return NSFullUserName()
-        #endif
-    }
-    
     var hardwareModel: String {
         var ret = "Unknown"
         #if os(iOS)
@@ -115,6 +101,20 @@ class BitweaverAppBase: NSObject {
             "os_version": osVersion,
             "memory": String( (Int(ProcessInfo.processInfo.physicalMemory) / (1024 * 1024 * 1024) ).description ) + " GB"
         ]
+    }
+    
+    static var deviceUsername: String {
+        #if os(iOS)
+        var device = "iPhone"
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            device = "iPad"
+        }
+        var name = UIDevice.current.name.replacingOccurrences(of: device, with: "")
+        name = name.replacingOccurrences(of: "’s ", with: "")
+        return name
+        #else
+        return NSFullUserName()
+        #endif
     }
     
     func httpHeaders() -> [String: String] {
