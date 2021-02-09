@@ -16,7 +16,7 @@ class BaseBitweaverLoginViewController: BWViewController {
     
     var loginCompletion: (() -> Void)?
     
-    var feedBackErrorMessage = "Please enter your email and password used to login to \n" + gBitSystem.apiBaseUri
+    var feedBackErrorMessage = "Please enter your email and password used to login to \n" + BitweaverAppBase.apiBaseUri
     
     func signIn(authLogin: String, authPassword: String, handler: BaseBitweaverLoginViewController, saveToKeyChain: Bool) {
         let completion: (Bool, String) -> Void = { [self] isSuccess, message in

@@ -10,7 +10,6 @@
 import Foundation
 import Alamofire
 import os.log
-import SwiftyJSON
 
 @objc(BitweaverRestObject)
 class BitweaverRestObject: JSONableObject {
@@ -43,9 +42,9 @@ class BitweaverRestObject: JSONableObject {
     var isRemote: Bool { return contentId != nil }
     var isLocal: Bool { return contentId == nil }
     
-    var remoteUri: String { return gBitSystem.apiBaseUri+"?content_id="+(self.contentId?.stringValue ?? self.contentUuid.uuidString) }
+    var remoteUri: String { return BitweaverAppBase.apiBaseUri+"?content_id="+(self.contentId?.stringValue ?? self.contentUuid.uuidString) }
 
-    var restBaseUri: String { return gBitSystem.apiBaseUri+"api/" }
+    var restBaseUri: String { return BitweaverAppBase.apiBaseUri+"api/" }
     var restUri: String { return restBaseUri+"content/"+(self.contentId?.stringValue ?? self.contentUuid.uuidString) }
 
     var remoteUrl: URL? { return URL.init(string: remoteUri) }
@@ -194,7 +193,7 @@ class BitweaverRestObject: JSONableObject {
                 usingThreshold: UInt64.init(),
                 to: restUri,
                 method: .post,
-                headers: gBitSystem.httpHeaders(),
+                headers: BitweaverAppBase.httpHeaders(),
                 encodingCompletion: { encodingResult in
 					var ret: UploadStatus = .Error
                     var errorMessage = ""
@@ -221,7 +220,7 @@ class BitweaverRestObject: JSONableObject {
                                     if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                                         errorMessage = utf8Text
                                     } else {
-                                        errorMessage = gBitSystem.httpError( response: response, request: response.request )
+                                        errorMessage = BitweaverAppBase.httpError( response: response, request: response.request )
                                     }
                                 default:
                                     errorMessage = String(format: "Unexpected error.\n(EC %ld %@)", Int(statusCode), response.request?.url?.host ?? "")

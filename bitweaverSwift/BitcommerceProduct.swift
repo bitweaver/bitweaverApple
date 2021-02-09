@@ -30,13 +30,13 @@ class BitcommerceProduct: BitweaverRestObject {
     
     @objc dynamic var environmentInfoHash: [String: String] = [:]
 
-    override var remoteUri: String { return gBitSystem.apiBaseUri+"bookstore/"+(productId?.description ?? contentUuid.uuidString) }
+    override var remoteUri: String { return BitweaverAppBase.apiBaseUri+"bookstore/"+(productId?.description ?? contentUuid.uuidString) }
 
     override func initProperties() {
         super.initProperties()
         contentTypeGuid = "bitproduct"
         remoteTypeClass = getRemoteTypeClass()
-        environmentInfoHash = gBitSystem.appSupportHash
+        environmentInfoHash = BitweaverAppBase.appSupportHash
     }
 
     func getRemoteTypeClass() -> String {
@@ -59,7 +59,7 @@ class BitcommerceProduct: BitweaverRestObject {
     override func getNativeValue(propertyName: String, propertyValue: String) -> Any? {
         var ret: Any?
         if propertyName == "environmentInfo" {
-            ret = gBitSystem.appSupportHash
+            ret = BitweaverAppBase.appSupportHash
         }
         if propertyName.hasSuffix("Pt"), responds(to: NSSelectorFromString(propertyName)) {
             ret = Double(propertyValue)
@@ -194,8 +194,8 @@ class BitcommerceProduct: BitweaverRestObject {
 
     func loadRemote( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
         if gBitUser.isAuthenticated() {
-            let headers = gBitSystem.httpHeaders()
-            Alamofire.request(gBitSystem.apiBaseUri+"api/products/list",
+            let headers = BitweaverAppBase.httpHeaders()
+            Alamofire.request(BitweaverAppBase.apiBaseUri+"api/products/list",
                               method: .get,
                               parameters: nil,
                               encoding: URLEncoding.default,

@@ -145,9 +145,9 @@ class BitweaverUser: BitweaverRestObject {
         parameters["password"] = authPassword
         parameters["real_name"] = BitweaverAppBase.deviceUsername
 
-        let headers = gBitSystem.httpHeaders()
+        let headers = BitweaverAppBase.httpHeaders()
 
-        Alamofire.request(gBitSystem.apiBaseUri+"api/users/register",
+        Alamofire.request(BitweaverAppBase.apiBaseUri+"api/users/register",
                 method: .post,
                 parameters: parameters,
                 encoding: URLEncoding.default,
@@ -167,7 +167,7 @@ class BitweaverUser: BitweaverRestObject {
                         if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
                             print("Data: \(utf8Text)")
                         }
-                        errorMessage = "Registration failed. \n"+gBitSystem.httpError( response: response, request: response.request )
+                        errorMessage = "Registration failed. \n"+BitweaverAppBase.httpError( response: response, request: response.request )
                     case 500:
                         errorMessage = "Internal server error. Contact support"
                     default:
@@ -180,12 +180,12 @@ class BitweaverUser: BitweaverRestObject {
 
     func authenticate( authLogin: String, authPassword: String, handler: BaseBitweaverLoginViewController, saveToKeyChain: Bool ) {
 
-        var headers = gBitSystem.httpHeaders()
+        var headers = BitweaverAppBase.httpHeaders()
         let credentialData = "\(authLogin):\(authPassword)".data(using: String.Encoding.utf8)!
         let base64Credentials = credentialData.base64EncodedString(options: [])
         headers["Authorization"] = "Basic \(base64Credentials)"
 
-        Alamofire.request(gBitSystem.apiBaseUri+"api/users/authenticate",
+        Alamofire.request(BitweaverAppBase.apiBaseUri+"api/users/authenticate",
                           method: .post,
 						  parameters: ["rme": "on"], // enable remember me. Very important so your cookie doesn't die
                           encoding: URLEncoding.default,
@@ -201,12 +201,12 @@ class BitweaverUser: BitweaverRestObject {
                     case 200 ... 399:
 
                         // cache login credentials
-                        gBitSystem.authLogin = authLogin
-                        gBitSystem.authPassword = authPassword
+                        BitweaverAppBase.authLogin = authLogin
+                        BitweaverAppBase.authPassword = authPassword
 
                         // Set all cookies so subsequent requests pass on info
 						self?.cookieArray.removeAll()
-                        if let aFields = response.response?.allHeaderFields as? [String: String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
+                        if let aFields = response.response?.allHeaderFields as? [String: String], let anUri = URL(string: BitweaverAppBase.apiBaseUri ) {
                             self?.cookieArray = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
                         }
 
@@ -251,12 +251,12 @@ class BitweaverUser: BitweaverRestObject {
 			completion( success, message )
 		}
 		
-		sendRestRequest(uri: gBitSystem.apiBaseUri+"api/users/authenticate", method: .get, completion: localCompletion)
+		sendRestRequest(uri: BitweaverAppBase.apiBaseUri+"api/users/authenticate", method: .get, completion: localCompletion)
 	}
 	
     func logout( completion: @escaping (_ success: Bool, _ message: String) -> Void ) {
-        gBitSystem.authLogin = ""
-        gBitSystem.authPassword = ""
+        BitweaverAppBase.authLogin = ""
+        BitweaverAppBase.authPassword = ""
         let properties = getAllPropertyMappings()
         for (key, _) in properties {
             if let varName = properties[key] {
@@ -276,14 +276,14 @@ class BitweaverUser: BitweaverRestObject {
 			completion( success, message )
 		}
 
-		sendRestRequest(uri: gBitSystem.apiBaseUri+"api/users/authenticate", method: .delete, completion: localCompletion)
+		sendRestRequest(uri: BitweaverAppBase.apiBaseUri+"api/users/authenticate", method: .delete, completion: localCompletion)
 		
 		cookieArray.removeAll()
 		NotificationCenter.default.post(name: NSNotification.Name("UserUnloaded"), object: self)
     }
 	
 	private func sendRestRequest( uri: String, method: HTTPMethod, completion: @escaping (_ statusCode: Int, _ json: JSON, _ message: String) -> Void ) {
-		let headers = gBitSystem.httpHeaders()
+		let headers = BitweaverAppBase.httpHeaders()
 		Alamofire.request(	uri,
 							  method: method,
 							  encoding: URLEncoding.default,
@@ -300,7 +300,7 @@ class BitweaverUser: BitweaverRestObject {
 					case 200 ... 399:
 						// Set all cookies so subsequent requests pass on info
 						self?.cookieArray.removeAll()
-						if let aFields = response.response?.allHeaderFields as? [String: String], let anUri = URL(string: gBitSystem.apiBaseUri ) {
+						if let aFields = response.response?.allHeaderFields as? [String: String], let anUri = URL(string: BitweaverAppBase.apiBaseUri ) {
 							self?.cookieArray = HTTPCookie.cookies(withResponseHeaderFields: aFields, for: anUri)
 						}
 					case 400 ... 499:

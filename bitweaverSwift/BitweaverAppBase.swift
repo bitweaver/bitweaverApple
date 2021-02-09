@@ -30,46 +30,46 @@ class BitweaverAppBase: NSObject {
         case Warning
     }
     
-    var authLogin: String = ""
-    var authPassword: String = ""
+    static var authLogin: String = ""
+    static var authPassword: String = ""
 
-    var apiBaseUri: String = ""
-    var apiKey: String = ""
-    var apiSecret: String = ""
+    static var apiBaseUri: String = ""
+    static var apiKey: String = ""
+    static var apiSecret: String = ""
 
     override init() {
         super.init()
-        apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_URI") as? String ?? ""
-        apiKey = Bundle.main.object(forInfoDictionaryKey: "BW_API_KEY") as? String ?? ""
-        apiSecret = Bundle.main.object(forInfoDictionaryKey: "BW_API_SECRET") as? String ?? ""
+        BitweaverAppBase.apiBaseUri = Bundle.main.object(forInfoDictionaryKey: "BW_API_URI") as? String ?? ""
+        BitweaverAppBase.apiKey = Bundle.main.object(forInfoDictionaryKey: "BW_API_KEY") as? String ?? ""
+        BitweaverAppBase.apiSecret = Bundle.main.object(forInfoDictionaryKey: "BW_API_SECRET") as? String ?? ""
     }
 
     //return os major version 13,14,15
-    var osVersion: String {
+    static var osVersion: String {
         return osMajorVersion.description+"."+osMinorVersion.description+"."+osPatchVersion.description
     }
     
-    var osMajorVersion: Int {
+    static var osMajorVersion: Int {
         return ProcessInfo.processInfo.operatingSystemVersion.majorVersion
     }
     
-    var osMinorVersion: Int {
+    static var osMinorVersion: Int {
         return ProcessInfo.processInfo.operatingSystemVersion.minorVersion
     }
     
-    var osPatchVersion: Int {
+    static var osPatchVersion: Int {
         return ProcessInfo.processInfo.operatingSystemVersion.patchVersion
     }
     
-    var buildVersion: String {
+    static var buildVersion: String {
         return (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "Unknown"
     }
     
-    var appVersion: String {
+    static var appVersion: String {
         return  (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "Unknown"
     }
     
-    var hardwareModel: String {
+    static var hardwareModel: String {
         var ret = "Unknown"
         #if os(iOS)
         let device = UIDevice.current
@@ -93,7 +93,7 @@ class BitweaverAppBase: NSObject {
         return NetworkReachabilityManager()!.isReachable
     }
 
-    var appSupportHash: [String: String] {
+    static var appSupportHash: [String: String] {
         return [
             "app_version": appVersion,
             "build_version": buildVersion,
@@ -117,15 +117,15 @@ class BitweaverAppBase: NSObject {
         #endif
     }
     
-    func httpHeaders() -> [String: String] {
+    static func httpHeaders() -> [String: String] {
         var headers: [String: String] = [:]
-        if authLogin.count > 0 && authPassword.count > 0 {
+        if BitweaverAppBase.authLogin.count > 0 && BitweaverAppBase.authPassword.count > 0 {
             let credentialData = "\(authLogin):\(authPassword)".data(using: String.Encoding.utf8)!
             let base64Credentials = credentialData.base64EncodedString(options: [])
             headers["Authorization"] = "Basic \(base64Credentials)"
         }
 
-        headers["API"] = "API consumer_key="+apiKey
+        headers["API"] = "API consumer_key="+BitweaverAppBase.apiKey
 
         return headers
     }
@@ -135,7 +135,7 @@ class BitweaverAppBase: NSObject {
         print("🤡 \(message) \n## \(fileName) - \(functionName) at line \(lineNumber)[\(columnNumber)]")
     }
     
-    func httpError(response: DataResponse<JSON>, request: URLRequest?) -> String {
+    static func httpError(response: DataResponse<JSON>, request: URLRequest?) -> String {
         var errorMessage = ""
         var logMessage = ""
         if let error = response.error as? AFError {
