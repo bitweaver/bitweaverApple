@@ -153,12 +153,12 @@ class BitcommerceProduct: BitweaverRestObject {
         return nil
     }
 */
-    func getList( completion: @escaping ([String: BasePrintProduct]) -> Void ) {
+    func getList( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
 //        loadLocal( completion: completion )
         loadRemote( completion: completion )
     }
 
-    func loadLocal( completion: @escaping ([String: BasePrintProduct]) -> Void ) {
+    func loadLocal( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
         let fileManager = FileManager.default
         let resourceKeys: [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
         let enumerator = FileManager.default.enumerator(at: localProjectsUrl!, includingPropertiesForKeys: resourceKeys,
@@ -167,7 +167,7 @@ class BitcommerceProduct: BitweaverRestObject {
                                                             return true
         })!
 
-        var productList: [String: BasePrintProduct] = [:]
+        var productList: [String: BitcommerceProduct] = [:]
 
         for case let fileURL as URL in enumerator {
             do {
@@ -178,7 +178,7 @@ class BitcommerceProduct: BitweaverRestObject {
                     if fileManager.fileExists(atPath: jsonUrl.path) {
                         let data = try Data(contentsOf: jsonUrl, options: .mappedIfSafe)
                         let json = try JSON.init(data: data)
-                        let newProduct = BasePrintProduct.init(fromJSON: json)
+                        let newProduct = BitcommerceProduct.init(fromJSON: json)
                         productList[dirUuid] = newProduct
                         break
                     }
@@ -192,7 +192,7 @@ class BitcommerceProduct: BitweaverRestObject {
         NotificationCenter.default.post(name: NSNotification.Name("ProductListLoaded"), object: self)
     }
 
-    func loadRemote( completion: @escaping ([String: BasePrintProduct]) -> Void ) {
+    func loadRemote( completion: @escaping ([String: BitcommerceProduct]) -> Void ) {
         if gBitUser.isAuthenticated() {
             let headers = gBitSystem.httpHeaders()
             Alamofire.request(gBitSystem.apiBaseUri+"api/products/list",
@@ -204,10 +204,10 @@ class BitcommerceProduct: BitweaverRestObject {
                 .responseSwiftyJSON { [weak self] response in
                     switch response.result {
                     case .success :
-                        var productList = [String: BasePrintProduct]()
+                        var productList = [String: BitcommerceProduct]()
                         if let json = response.result.value {
                             json.forEach { (_, projectJson) in
-                                let prod = BasePrintProduct.init(fromJSON: projectJson)
+                                let prod = BitcommerceProduct.init(fromJSON: projectJson)
                                 prod.cacheLocal()
                                 productList[prod.contentUuid.uuidString] = prod
                             }
